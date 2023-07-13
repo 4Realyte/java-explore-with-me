@@ -1,7 +1,9 @@
 package ru.practicum.statsserver.dao;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import stats.EndpointHit;
@@ -12,48 +14,48 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Repository
-@RequiredArgsConstructor
 public class StatsRepositoryImpl implements StatsRepository {
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final SimpleJdbcInsert jdbcInsert;
+
+    @Autowired
+    public StatsRepositoryImpl(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbc) {
+        this.namedJdbc = namedJdbc;
+        this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("stats")
+                .usingGeneratedKeyColumns("id");
+    }
 
     public void addHit(EndpointHit hit) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate).withTableName("stats")
-                .usingGeneratedKeyColumns("id");
-
-        simpleJdbcInsert.execute(Map.of("app", hit.getApp(),
+        jdbcInsert.execute(Map.of("app", hit.getApp(),
                 "uri", hit.getUri(),
                 "ip", hit.getIp(),
-                "creation_date", LocalDateTime.parse(hit.getTimestamp(),formatter)));
-
+                "creation_date", LocalDateTime.parse(hit.getTimestamp(), formatter)));
     }
 
     public List<ViewStats> getAllStats(GetRequestStats request) {
+        MapSqlParameterSource mapParam = new MapSqlParameterSource(Map.of("start", request.getStart(),
+                "end", request.getEnd(),
+                "uris", request.getUris()));
         String unique = "COUNT(s.ip)";
         if (request.getUnique()) {
             unique = "COUNT(DISTINCT s.ip)";
         }
 
         String sql = "SELECT s.app, s.uri, " + unique + " as hits FROM stats AS s " +
-                "WHERE s.creation_date BETWEEN ? AND ? ";
+                "WHERE s.creation_date BETWEEN :start AND :end ";
         StringBuilder builder = new StringBuilder(sql);
 
         List<String> uri = request.getUris();
         if (!uri.isEmpty()) {
-            String sqlParam = String.join(",", Collections.nCopies(uri.size(), "?"));
-            builder.append("AND s.uri IN" + "(" + sqlParam + ")");
-            builder.append(" GROUP BY s.app, s.uri");
-            return jdbcTemplate.query(builder.toString(), (rs, rowNum) -> makeViewStat(rs),
-                    request.getStart(), request.getEnd(), uri.toArray());
+            builder.append("AND s.uri IN (:uris)");
         }
-        builder.append(" GROUP BY s.app, s.uri");
-        return jdbcTemplate.query(builder.toString(), (rs, rowNum) -> makeViewStat(rs),
-                request.getStart(), request.getEnd());
+        builder.append(" GROUP BY s.app, s.uri ORDER BY hits DESC");
+        return namedJdbc.query(builder.toString(), mapParam, (rs, rowNum) -> makeViewStat(rs));
     }
 
     private ViewStats makeViewStat(ResultSet rs) throws SQLException {
