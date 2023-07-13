@@ -13,17 +13,17 @@ import java.util.List;
 public class GetRequestStats {
     private LocalDateTime start;
     private LocalDateTime end;
-    private List<String> uri;
+    private List<String> uris;
     private Boolean unique;
 
     public static GetRequestStats of(LocalDateTime start,
                                      LocalDateTime end,
-                                     List<String> uri,
+                                     List<String> uris,
                                      Boolean unique) {
         GetRequestStats request = new GetRequestStats();
         request.setStart(start);
-        request.setEnd(start);
-        request.setUri(uri == null ? Collections.emptyList() : uri);
+        request.setEnd(end);
+        request.setUris(uris == null ? Collections.emptyList() : uris);
         request.setUnique(unique);
         return request;
     }
