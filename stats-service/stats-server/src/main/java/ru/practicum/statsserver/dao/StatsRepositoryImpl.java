@@ -12,15 +12,12 @@ import stats.ViewStats;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
 @Repository
 public class StatsRepositoryImpl implements StatsRepository {
     private final NamedParameterJdbcTemplate namedJdbc;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final SimpleJdbcInsert jdbcInsert;
 
     @Autowired
@@ -34,7 +31,7 @@ public class StatsRepositoryImpl implements StatsRepository {
         jdbcInsert.execute(Map.of("app", hit.getApp(),
                 "uri", hit.getUri(),
                 "ip", hit.getIp(),
-                "creation_date", LocalDateTime.parse(hit.getTimestamp(), formatter)));
+                "creation_date", hit.getTimestamp()));
     }
 
     public List<ViewStats> getAllStats(GetRequestStats request) {
