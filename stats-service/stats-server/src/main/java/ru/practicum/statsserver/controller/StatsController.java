@@ -5,6 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.statsserver.exception.IncorrectDateException;
 import ru.practicum.statsserver.service.StatsService;
 import stats.EndpointHit;
 import stats.GetRequestStats;
@@ -30,6 +31,9 @@ public class StatsController {
                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                                        @RequestParam(required = false) List<String> uris,
                                        @RequestParam(defaultValue = "false") Boolean unique) {
+        if (start.isAfter(end) || start.isEqual(end)) {
+            throw new IncorrectDateException("Дата начала не может быть равна или позднее даты окончания");
+        }
         return service.getAllStats(GetRequestStats.of(start, end, uris, unique));
     }
 }

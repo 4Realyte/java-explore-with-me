@@ -20,6 +20,7 @@ public class GetRequestStats {
                                      LocalDateTime end,
                                      List<String> uris,
                                      Boolean unique) {
+
         GetRequestStats request = new GetRequestStats();
         request.setStart(start);
         request.setEnd(end);
