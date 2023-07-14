@@ -6,6 +6,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplateHandler;
 import stats.EndpointHit;
 import stats.GetRequestStats;
@@ -13,6 +14,7 @@ import stats.GetRequestStats;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +23,20 @@ import java.util.Map;
 public class StatsClient {
     private final RestTemplate restTemplate;
     private final String application;
+    private final String baseUri;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd+HH:mm:ss");
 
 
     public StatsClient(String serverUrl, String apiPrefix, String application) {
+        this.baseUri = serverUrl + apiPrefix;
         this.application = application;
         restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-        UriTemplateHandler uriTemplateHandler = new DefaultUriBuilderFactory(serverUrl + apiPrefix);
+        UriTemplateHandler uriTemplateHandler = new DefaultUriBuilderFactory(baseUri);
         restTemplate.setUriTemplateHandler(uriTemplateHandler);
     }
 
     public StatsClient(String serverUrl, String application) {
+        this.baseUri = serverUrl;
         this.application = application;
         restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         UriTemplateHandler uriTemplateHandler = new DefaultUriBuilderFactory(serverUrl);
@@ -56,12 +62,15 @@ public class StatsClient {
 
     public ResponseEntity<Object> getAllStats(GetRequestStats request) {
         HttpEntity<Object> requestEntity = new HttpEntity<>(null, defaultHeaders());
-
         Map<String, Object> parameters = getParameters(request);
 
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUri + "/stats");
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
         ResponseEntity<Object> response;
         try {
-            response = restTemplate.exchange("/stats", HttpMethod.GET, requestEntity, Object.class, parameters);
+            response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, Object.class, parameters);
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }
@@ -69,8 +78,8 @@ public class StatsClient {
     }
 
     private Map<String, Object> getParameters(GetRequestStats request) {
-        Map<String, Object> parameters = new HashMap<>(Map.of("start", request.getStart(),
-                "end", request.getEnd()));
+        Map<String, Object> parameters = new HashMap<>(Map.of("start", request.getStart().format(formatter),
+                "end", request.getEnd().format(formatter)));
         if (!request.getUris().isEmpty()) {
             parameters.put("uris", request.getUris());
         }

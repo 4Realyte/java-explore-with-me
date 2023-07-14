@@ -3,14 +3,17 @@ package ru.practicum.statsserver.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.statsclient.client.StatsClient;
 import ru.practicum.statsserver.exception.IncorrectDateException;
 import ru.practicum.statsserver.service.StatsService;
 import stats.EndpointHit;
 import stats.GetRequestStats;
 import stats.ViewStats;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,6 +22,7 @@ import java.util.List;
 @Validated
 public class StatsController {
     private final StatsService service;
+    private final StatsClient client = new StatsClient("http://localhost:9090", "stats-server");
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
@@ -35,5 +39,18 @@ public class StatsController {
             throw new IncorrectDateException("Дата начала не может быть равна или позднее даты окончания");
         }
         return service.getAllStats(GetRequestStats.of(start, end, uris, unique));
+    }
+
+    @PostMapping("/test/hit")
+    public void testMakeHit(HttpServletRequest request) {
+        client.makeHit(request);
+    }
+
+    @GetMapping("/test/stats")
+    public ResponseEntity<Object> testGetAllStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                                  @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+                                                  @RequestParam(required = false) List<String> uris,
+                                                  @RequestParam(defaultValue = "false") Boolean unique) {
+        return client.getAllStats(GetRequestStats.of(start, end, uris, unique));
     }
 }
