@@ -19,7 +19,6 @@ import java.util.List;
 @Validated
 public class StatsController {
     private final StatsService service;
-   // private final StatsClient client = new StatsClient("http://localhost:9090", "stats-server");
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
@@ -37,17 +36,4 @@ public class StatsController {
         }
         return service.getAllStats(GetRequestStats.of(start, end, uris, unique));
     }
-
-   /* @PostMapping("/test/hit")
-    public void testMakeHit(HttpServletRequest request) {
-        client.makeHit(request);
-    }
-
-    @GetMapping("/test/stats")
-    public ResponseEntity<Object> testGetAllStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-                                                  @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-                                                  @RequestParam(required = false) List<String> uris,
-                                                  @RequestParam(defaultValue = "false") Boolean unique) {
-        return client.getAllStats(GetRequestStats.of(start, end, uris, unique));
-    }*/
 }
