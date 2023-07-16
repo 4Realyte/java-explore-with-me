@@ -1,4 +1,4 @@
-package ru.practicum.ewmservice.user.model;
+package ru.practicum.ewmservice.entities.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

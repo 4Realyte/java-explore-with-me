@@ -1,9 +1,9 @@
-package ru.practicum.ewmservice.user.mapper;
+package ru.practicum.ewmservice.entities.user.mapper;
 
 import org.mapstruct.Mapper;
-import ru.practicum.ewmservice.user.dto.NewUserRequest;
-import ru.practicum.ewmservice.user.dto.UserDto;
-import ru.practicum.ewmservice.user.model.User;
+import ru.practicum.ewmservice.entities.user.dto.NewUserRequest;
+import ru.practicum.ewmservice.entities.user.dto.UserDto;
+import ru.practicum.ewmservice.entities.user.model.User;
 
 import java.util.List;
 

@@ -31,7 +31,7 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler({UserNotFoundException.class})
+    @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundEx(final RuntimeException ex) {
         return ApiError.builder()
