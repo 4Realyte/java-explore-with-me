@@ -1,16 +1,14 @@
 package ru.practicum.ewmservice.entities.event.utils;
 
-import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDateTime;
 
-public class EventDateValidator implements ConstraintValidator<EventDate, NewEventDto> {
+public class EventDateValidator implements ConstraintValidator<EventDate, LocalDateTime> {
     @Override
-    public boolean isValid(NewEventDto newEventDto, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(LocalDateTime localDateTime, ConstraintValidatorContext constraintValidatorContext) {
         LocalDateTime future = LocalDateTime.now().plusHours(2L);
-        if (newEventDto.getEventDate().isBefore(future)) {
+        if (localDateTime != null && localDateTime.isBefore(future)) {
             return false;
         }
         return true;

@@ -1,11 +1,13 @@
 package ru.practicum.ewmservice.controllers.priv;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
+import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
 
 import javax.validation.Valid;
@@ -19,7 +21,8 @@ public class PrivateEventController {
     private final EventServiceImpl service;
 
     @PostMapping("/{userId}/events")
-    public EventFullDto addEvent(@PathVariable("userId") Long userId, @Valid NewEventDto dto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public EventFullDto addEvent(@PathVariable("userId") Long userId, @Valid @RequestBody NewEventDto dto) {
         return service.addEvent(userId, dto);
     }
 
@@ -32,7 +35,14 @@ public class PrivateEventController {
 
     @GetMapping("/{userId}/events/{eventId}")
     public EventFullDto getInitiatorEvent(@PathVariable("userId") Long userId,
-                                                @PathVariable("eventId") Long eventId) {
+                                          @PathVariable("eventId") Long eventId) {
         return service.getInitiatorEvent(userId, eventId);
+    }
+
+    @PatchMapping("/{userId}/events/{eventId}")
+    public EventFullDto updateEvent(@PathVariable("userId") Long userId,
+                                    @PathVariable("eventId") Long eventId,
+                                    @RequestBody @Valid UpdateEventUserRequest dto) {
+        return service.updateEvent(userId, eventId, dto);
     }
 }
