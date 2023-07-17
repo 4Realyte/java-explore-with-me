@@ -28,9 +28,12 @@ public interface EventMapper {
 
     List<EventShortDto> toShortDto(List<Event> events);
 
-    default void updateEvent(UpdateEventUserRequest dto, Event event) {
+    default void updateEvent(UpdateEventUserRequest dto, Event event, Category category) {
         if (dto == null) {
             return;
+        }
+        if (category != null) {
+            event.setCategory(category);
         }
         if (dto.getAnnotation() != null) {
             event.setAnnotation(dto.getAnnotation());

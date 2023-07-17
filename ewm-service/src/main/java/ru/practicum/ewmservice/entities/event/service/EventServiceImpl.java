@@ -65,11 +65,15 @@ public class EventServiceImpl {
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = repository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", userId)));
-
+        Category category = null;
+        if (dto.getCategory() != null) {
+          category = categoryRepository.findById(dto.getCategory())
+                    .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
+        }
         if (EventState.PUBLISHED.equals(event.getState())) {
             throw new ConflictException(String.format("You can't update event with %s status", EventState.PUBLISHED));
         }
-        mapper.updateEvent(dto, event);
+        mapper.updateEvent(dto, event, category);
 
         return mapper.toFullDto(repository.save(event));
     }

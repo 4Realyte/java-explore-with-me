@@ -1,6 +1,5 @@
 package ru.practicum.ewmservice.entities.event.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +27,6 @@ public class NewEventDto {
     @Size(min = 20, max = 7000)
     @NotBlank
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @NotNull
     @EventDate
     private LocalDateTime eventDate;

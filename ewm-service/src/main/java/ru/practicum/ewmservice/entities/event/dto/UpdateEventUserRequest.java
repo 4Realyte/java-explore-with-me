@@ -1,7 +1,5 @@
 package ru.practicum.ewmservice.entities.event.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,11 +19,9 @@ import java.time.LocalDateTime;
 public class UpdateEventUserRequest {
     @Size(min = 20, max = 2000)
     private String annotation;
-    @JsonProperty("category")
-    private Long categoryId;
+    private Long category;
     @Size(min = 20, max = 7000)
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @EventDate
     private LocalDateTime eventDate;
     private Location location;
