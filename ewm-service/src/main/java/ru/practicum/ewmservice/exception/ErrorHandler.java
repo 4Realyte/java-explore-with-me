@@ -31,13 +31,13 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class})
+    @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class, EventNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundEx(final RuntimeException ex) {
         return ApiError.builder()
                 .errors(ex.getStackTrace())
                 .reason("Resource not found")
-                .status(HttpStatus.CONFLICT)
+                .status(HttpStatus.NOT_FOUND)
                 .message(ex.getMessage())
                 .build();
     }
