@@ -1,6 +1,7 @@
 package ru.practicum.ewmservice.entities.event.model;
 
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import ru.practicum.ewmservice.entities.category.model.Category;
 import ru.practicum.ewmservice.entities.user.model.User;
 
@@ -23,6 +24,9 @@ public class Event {
     @JoinColumn(name = "category_id")
     private Category category;
     @Column(name = "confirmed_requests")
+    @Formula(value = "SELECT COALESCE(COUNT(r.id), 0) " +
+            "FROM REQUESTS as r " +
+            "WHERE r.EVENT_ID = ID AND r.STATUS = 'APPROVED'")
     private Integer confirmedRequests;
     private String description;
     @Column(name = "event_date")

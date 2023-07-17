@@ -10,6 +10,8 @@ import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
+import ru.practicum.ewmservice.entities.participation.model.Participation;
 import ru.practicum.ewmservice.entities.user.mapper.UserMapper;
 import ru.practicum.ewmservice.entities.user.model.User;
 
@@ -27,6 +29,12 @@ public interface EventMapper {
     EventShortDto toShortDto(Event event);
 
     List<EventShortDto> toShortDto(List<Event> events);
+
+    @Mapping(source = "participation.event.id", target = "event")
+    @Mapping(source = "participation.requester.id", target = "requester")
+    ParticipationResponseDto toPartDto(Participation participation);
+
+    List<ParticipationResponseDto> toPartDto(List<Participation> participations);
 
     default void updateEvent(UpdateEventUserRequest dto, Event event, Category category) {
         if (dto == null) {

@@ -20,9 +20,9 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({DataIntegrityViolationException.class, ConflictException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleConstraintViolationEx(final DataIntegrityViolationException ex) {
+    public ApiError handleConstraintViolationEx(final RuntimeException ex) {
         return ApiError.builder()
                 .errors(ex.getStackTrace())
                 .reason("This email already exists")
@@ -31,7 +31,8 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class, EventNotFoundException.class})
+    @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class,
+            EventNotFoundException.class, ParticipationNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundEx(final RuntimeException ex) {
         return ApiError.builder()

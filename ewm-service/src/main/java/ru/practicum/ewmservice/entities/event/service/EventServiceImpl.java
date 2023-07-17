@@ -15,13 +15,13 @@ import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.mapper.EventMapper;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.participation.dao.ParticipationRepository;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationStatus;
+import ru.practicum.ewmservice.entities.participation.model.Participation;
 import ru.practicum.ewmservice.entities.user.dao.UserRepository;
 import ru.practicum.ewmservice.entities.user.model.User;
-import ru.practicum.ewmservice.exception.CategoryNotFoundException;
-import ru.practicum.ewmservice.exception.ConflictException;
-import ru.practicum.ewmservice.exception.EventNotFoundException;
-import ru.practicum.ewmservice.exception.UserNotFoundException;
-import ru.practicum.statsclient.client.StatsClient;
+import ru.practicum.ewmservice.exception.*;
 
 import java.util.List;
 
@@ -32,8 +32,9 @@ public class EventServiceImpl {
     private final EventRepository repository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final ParticipationRepository partRepository;
     private final EventMapper mapper;
-    private final StatsClient client = new StatsClient("http://localhost:9090", "ewm-service");
+
 
     @Transactional
     public EventFullDto addEvent(Long userId, NewEventDto dto) {
@@ -62,12 +63,13 @@ public class EventServiceImpl {
                 .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", userId))));
     }
 
+    @Transactional
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = repository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", userId)));
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         Category category = null;
         if (dto.getCategory() != null) {
-          category = categoryRepository.findById(dto.getCategory())
+            category = categoryRepository.findById(dto.getCategory())
                     .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
         }
         if (EventState.PUBLISHED.equals(event.getState())) {
@@ -76,5 +78,51 @@ public class EventServiceImpl {
         mapper.updateEvent(dto, event, category);
 
         return mapper.toFullDto(repository.save(event));
+    }
+
+    @Transactional
+    public ParticipationResponseDto addRequest(Long userId, Long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+
+        checkRequestConstraints(user, event);
+
+        Participation.ParticipationBuilder builder = Participation.builder();
+        builder.requester(user);
+        builder.event(event);
+        if (event.getRequestModeration()) {
+            builder.status(ParticipationStatus.PENDING);
+        } else {
+            builder.status(ParticipationStatus.APPROVED);
+        }
+        return mapper.toPartDto(partRepository.save(builder.build()));
+    }
+
+    @Transactional
+    public ParticipationResponseDto cancelRequest(Long requestId, Long userId) {
+        Participation participation = partRepository.findByIdAndRequesterId(requestId, userId)
+                .orElseThrow(() -> new ParticipationNotFoundException(
+                        String.format("Participation with id %s is not found", requestId)));
+
+        participation.setStatus(ParticipationStatus.CANCELED);
+        return mapper.toPartDto(partRepository.save(participation));
+    }
+
+    public List<ParticipationResponseDto> getUserRequests(Long userId) {
+        return mapper.toPartDto(partRepository.findAllUserRequests(userId));
+    }
+
+    private void checkRequestConstraints(User user, Event event) {
+        if (event.getConfirmedRequests().equals(event.getParticipantLimit())) {
+            throw new ConflictException(String.format("Event with id %s has reached participation limit", event.getId()));
+        }
+        if (!EventState.PUBLISHED.equals(event.getState())) {
+            throw new ConflictException(String.format("Event with id %s is not published yet", event.getId()));
+        }
+        if (user.equals(event.getInitiator())) {
+            throw new ConflictException(String.format("Initiator can't participate in his own event"));
+        }
     }
 }
