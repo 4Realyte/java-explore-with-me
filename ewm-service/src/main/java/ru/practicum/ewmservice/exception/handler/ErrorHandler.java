@@ -70,7 +70,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler({UserNotFoundException.class, CategoryNotFoundException.class,
-            EventNotFoundException.class, ParticipationNotFoundException.class})
+            EventNotFoundException.class, ParticipationNotFoundException.class, CompilationNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundEx(final RuntimeException ex) {
         List<ErrorMessage> errors = new ArrayList<>();
