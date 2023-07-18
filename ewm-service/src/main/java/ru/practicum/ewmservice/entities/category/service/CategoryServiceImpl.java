@@ -11,7 +11,7 @@ import ru.practicum.ewmservice.entities.category.dto.CategoryRequestDto;
 import ru.practicum.ewmservice.entities.category.dto.CategoryResponseDto;
 import ru.practicum.ewmservice.entities.category.mapper.CategoryMapper;
 import ru.practicum.ewmservice.entities.category.model.Category;
-import ru.practicum.ewmservice.exception.CategoryNotFoundException;
+import ru.practicum.ewmservice.exception.model.CategoryNotFoundException;
 
 import java.util.List;
 

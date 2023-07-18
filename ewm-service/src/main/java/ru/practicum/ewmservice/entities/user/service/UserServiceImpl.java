@@ -12,7 +12,7 @@ import ru.practicum.ewmservice.entities.user.dto.NewUserRequest;
 import ru.practicum.ewmservice.entities.user.dto.UserDto;
 import ru.practicum.ewmservice.entities.user.mapper.UserMapper;
 import ru.practicum.ewmservice.entities.user.model.User;
-import ru.practicum.ewmservice.exception.UserNotFoundException;
+import ru.practicum.ewmservice.exception.model.UserNotFoundException;
 
 import java.util.List;
 
@@ -42,6 +42,7 @@ public class UserServiceImpl {
         return dtos;
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         try {
             repository.deleteById(userId);

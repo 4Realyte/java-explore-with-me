@@ -1,4 +1,4 @@
-package ru.practicum.ewmservice.exception;
+package ru.practicum.ewmservice.exception.handler;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.ewmservice.exception.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +63,7 @@ public class ErrorHandler {
         }
         return ApiError.builder()
                 .errors(errors)
-                .reason("This email already exists")
+                .reason("For the requested operation the conditions are not met.")
                 .status(HttpStatus.CONFLICT)
                 .message(ex.getMessage())
                 .build();

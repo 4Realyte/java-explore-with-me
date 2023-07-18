@@ -13,5 +13,5 @@ import java.util.List;
 @Builder
 public class ParticipationUpdateRequest {
     List<Long> requestIds;
-    ParticipationStatus status;
+    ParticipationActionStatus status;
 }

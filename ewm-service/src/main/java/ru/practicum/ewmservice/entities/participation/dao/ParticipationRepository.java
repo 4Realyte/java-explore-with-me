@@ -15,7 +15,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             "where p.requester.id = :id AND p.event.initiator.id != :id")
     List<Participation> findAllUserRequests(@Param("id") Long userId);
 
-    List<Participation> findAllByRequesterIdAndEventId(Long requesterId, Long eventId);
+    List<Participation> findAllByEventId(Long eventId);
 
     List<Participation> findAllByIdIn(List<Long> ids);
 }

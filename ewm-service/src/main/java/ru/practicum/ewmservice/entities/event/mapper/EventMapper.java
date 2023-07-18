@@ -31,6 +31,8 @@ public interface EventMapper {
 
     EventFullDto toFullDto(Event event);
 
+    List<EventFullDto> toFullDto(List<Event> events);
+
     EventShortDto toShortDto(Event event);
 
     List<EventShortDto> toShortDto(List<Event> events);
@@ -87,10 +89,15 @@ public interface EventMapper {
         if (dto.getStateAction() != null) {
             switch (dto.getStateAction()) {
                 case CANCEL_REVIEW:
+                case REJECT_EVENT:
                     event.setState(EventState.CANCELED);
                     break;
                 case SEND_TO_REVIEW:
                     event.setState(EventState.PENDING);
+                    break;
+                case PUBLISH_EVENT:
+                    event.setState(EventState.PUBLISHED);
+                    break;
             }
         }
     }

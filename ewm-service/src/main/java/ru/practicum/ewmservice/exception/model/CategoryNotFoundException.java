@@ -1,4 +1,4 @@
-package ru.practicum.ewmservice.exception;
+package ru.practicum.ewmservice.exception.model;
 
 public class CategoryNotFoundException extends RuntimeException {
     public CategoryNotFoundException(String message) {
