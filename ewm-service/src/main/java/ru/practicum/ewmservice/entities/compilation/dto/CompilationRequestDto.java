@@ -16,10 +16,16 @@ import java.util.List;
 @AllArgsConstructor
 @Jacksonized
 public class CompilationRequestDto {
+    public interface NewRequest {
+    }
+
+    public interface UpdateRequest {
+    }
+
     private List<Long> events;
     @Builder.Default
     private Boolean pinned = false;
-    @Size(min = 1, max = 50)
-    @NotBlank
+    @Size(min = 1, max = 50, groups = {NewRequest.class, UpdateRequest.class})
+    @NotBlank(groups = NewRequest.class)
     private String title;
 }

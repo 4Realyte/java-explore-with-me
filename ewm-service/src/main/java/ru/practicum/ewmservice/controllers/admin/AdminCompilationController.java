@@ -2,22 +2,22 @@ package ru.practicum.ewmservice.controllers.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.compilation.dto.CompilationRequestDto;
 import ru.practicum.ewmservice.entities.compilation.dto.CompilationResponseDto;
 import ru.practicum.ewmservice.entities.compilation.service.CompilationServiceImpl;
 
-import javax.validation.Valid;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/compilations")
+@Validated
 public class AdminCompilationController {
     private final CompilationServiceImpl service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CompilationResponseDto addCompilation(@RequestBody @Valid CompilationRequestDto dto) {
+    public CompilationResponseDto addCompilation(@RequestBody @Validated(CompilationRequestDto.NewRequest.class) CompilationRequestDto dto) {
         return service.addCompilation(dto);
     }
 
@@ -29,7 +29,7 @@ public class AdminCompilationController {
 
     @PatchMapping("/{compId}")
     public CompilationResponseDto updateCompilation(@PathVariable("compId") Long compId,
-                                                    @RequestBody @Valid CompilationRequestDto dto) {
+                                                    @RequestBody @Validated(CompilationRequestDto.UpdateRequest.class) CompilationRequestDto dto) {
         return service.updateCompilation(compId, dto);
     }
 }

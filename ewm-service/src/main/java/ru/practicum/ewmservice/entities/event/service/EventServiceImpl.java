@@ -157,8 +157,11 @@ public class EventServiceImpl {
             predicates.add(event.eventDate.loe(request.getRangeEnd()));
         }
         Pageable page = PageRequest.of(request.getFrom(), request.getSize());
-
-        return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+        if (!predicates.isEmpty()) {
+            return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+        } else {
+            return mapper.toFullDto(repository.findAll(page).getContent());
+        }
     }
 
     @Transactional
