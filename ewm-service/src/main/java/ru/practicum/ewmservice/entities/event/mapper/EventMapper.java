@@ -11,11 +11,16 @@ import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationStatus;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
 import ru.practicum.ewmservice.entities.participation.model.Participation;
 import ru.practicum.ewmservice.entities.user.mapper.UserMapper;
 import ru.practicum.ewmservice.entities.user.model.User;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
 public interface EventMapper {
@@ -35,6 +40,18 @@ public interface EventMapper {
     ParticipationResponseDto toPartDto(Participation participation);
 
     List<ParticipationResponseDto> toPartDto(List<Participation> participations);
+
+
+    default ParticipationUpdateResponse toUpdateResponseDto(List<Participation> requests) {
+        Map<ParticipationStatus, List<ParticipationResponseDto>> dtos = requests
+                .stream()
+                .map(this::toPartDto)
+                .collect(Collectors.groupingBy(ParticipationResponseDto::getStatus));
+        return ParticipationUpdateResponse.builder()
+                .confirmedRequests(dtos.getOrDefault(ParticipationStatus.CONFIRMED, Collections.emptyList()))
+                .rejectedRequests(dtos.getOrDefault(ParticipationStatus.REJECTED, Collections.emptyList()))
+                .build();
+    }
 
     default void updateEvent(UpdateEventUserRequest dto, Event event, Category category) {
         if (dto == null) {

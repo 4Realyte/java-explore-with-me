@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +19,7 @@ import java.time.ZoneId;
 @Jacksonized
 public class ApiError {
     // todo: разобраться со стек-трейсом
-    private StackTraceElement[] errors;
+    private List<ErrorMessage> errors;
     private String reason;
     private String message;
     private HttpStatus status;

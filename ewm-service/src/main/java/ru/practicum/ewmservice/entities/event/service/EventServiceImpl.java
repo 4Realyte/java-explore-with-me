@@ -18,6 +18,8 @@ import ru.practicum.ewmservice.entities.event.model.EventState;
 import ru.practicum.ewmservice.entities.participation.dao.ParticipationRepository;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationStatus;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateRequest;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
 import ru.practicum.ewmservice.entities.participation.model.Participation;
 import ru.practicum.ewmservice.entities.user.dao.UserRepository;
 import ru.practicum.ewmservice.entities.user.model.User;
@@ -95,7 +97,7 @@ public class EventServiceImpl {
         if (event.getRequestModeration()) {
             builder.status(ParticipationStatus.PENDING);
         } else {
-            builder.status(ParticipationStatus.APPROVED);
+            builder.status(ParticipationStatus.CONFIRMED);
         }
         return mapper.toPartDto(partRepository.save(builder.build()));
     }
@@ -106,11 +108,11 @@ public class EventServiceImpl {
                 .orElseThrow(() -> new ParticipationNotFoundException(
                         String.format("Participation with id %s is not found", requestId)));
 
-        participation.setStatus(ParticipationStatus.CANCELED);
-        return mapper.toPartDto(partRepository.save(participation));
+        participation.setStatus(ParticipationStatus.REJECTED);
+        return mapper.toPartDto(partRepository.saveAndFlush(participation));
     }
 
-    public List<ParticipationResponseDto> getUserRequests(Long userId) {
+    public List<ParticipationResponseDto> getUserRequestsInOtherEvents(Long userId) {
         return mapper.toPartDto(partRepository.findAllUserRequests(userId));
     }
 
@@ -123,6 +125,48 @@ public class EventServiceImpl {
         }
         if (user.equals(event.getInitiator())) {
             throw new ConflictException(String.format("Initiator can't participate in his own event"));
+        }
+    }
+
+    public List<ParticipationResponseDto> getCurrentUserRequests(Long userId, Long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        return mapper.toPartDto(partRepository.findAllByRequesterIdAndEventId(user.getId(), event.getId()));
+    }
+
+    @Transactional
+    public ParticipationUpdateResponse updateParticipations(Long userId, Long eventId, ParticipationUpdateRequest request) {
+        Event event = repository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+
+        Integer participantLimit = event.getParticipantLimit();
+        checkUpdateParticipationRequest(request, event, participantLimit);
+
+        List<Participation> requests = partRepository.findAllByIdIn(request.getRequestIds());
+        for (Participation participation : requests) {
+            int count = participantLimit - event.getConfirmedRequests();
+            if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
+                throw new ConflictException(String.format("You can't update request with %s status", participation.getStatus()));
+            }
+            if (count > 0) {
+                participation.setStatus(request.getStatus());
+                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            } else {
+                participation.setStatus(ParticipationStatus.REJECTED);
+            }
+        }
+        repository.save(event);
+        return mapper.toUpdateResponseDto(partRepository.saveAll(requests));
+    }
+
+    private static void checkUpdateParticipationRequest(ParticipationUpdateRequest request, Event event, Integer participantLimit) {
+        if (participantLimit.equals(event.getConfirmedRequests())) {
+            throw new ConflictException(String.format("Event with id %s has reached participation limit", event.getId()));
+        }
+        if (!request.getStatus().equals(ParticipationStatus.PENDING)) {
+            throw new BadRequestException("Request must have status PENDING");
         }
     }
 }

@@ -10,6 +10,8 @@ import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateRequest;
+import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -48,8 +50,8 @@ public class PrivateEventController {
     }
 
     @GetMapping("/requests")
-    public List<ParticipationResponseDto> getUserRequests(@PathVariable("userId") Long userId) {
-        return service.getUserRequests(userId);
+    public List<ParticipationResponseDto> getUserRequestsInOtherEvents(@PathVariable("userId") Long userId) {
+        return service.getUserRequestsInOtherEvents(userId);
     }
 
     @PatchMapping("/events/{eventId}")
@@ -57,6 +59,19 @@ public class PrivateEventController {
                                     @PathVariable("eventId") Long eventId,
                                     @RequestBody @Valid UpdateEventUserRequest dto) {
         return service.updateEvent(userId, eventId, dto);
+    }
+
+    @GetMapping("/events/{eventId}/requests")
+    public List<ParticipationResponseDto> getCurrentUserRequests(@PathVariable("userId") Long userId,
+                                                                 @PathVariable("eventId") Long eventId) {
+        return service.getCurrentUserRequests(userId, eventId);
+    }
+
+    @PatchMapping("/events/{eventId}/requests")
+    public ParticipationUpdateResponse updateParticipations(@PathVariable("userId") Long userId,
+                                                            @PathVariable("eventId") Long eventId,
+                                                            @RequestBody ParticipationUpdateRequest request) {
+        return service.updateParticipations(userId, eventId, request);
     }
 
     @PatchMapping("/requests/{requestId}/cancel")

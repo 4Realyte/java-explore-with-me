@@ -26,7 +26,7 @@ public class Event {
     @Column(name = "confirmed_requests")
     @Formula(value = "SELECT COALESCE(COUNT(r.id), 0) " +
             "FROM REQUESTS as r " +
-            "WHERE r.EVENT_ID = ID AND r.STATUS = 'APPROVED'")
+            "WHERE r.EVENT_ID = id AND r.STATUS = 'CONFIRMED'")
     private Integer confirmedRequests;
     private String description;
     @Column(name = "event_date")
