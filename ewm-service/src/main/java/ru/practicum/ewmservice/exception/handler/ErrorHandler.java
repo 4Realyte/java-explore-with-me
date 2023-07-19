@@ -34,7 +34,7 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler({BadRequestException.class, ConstraintViolationException.class})
+    @ExceptionHandler({BadRequestException.class, ConstraintViolationException.class, IncorrectDateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequestException(final RuntimeException ex) {
         List<ErrorMessage> errors = new ArrayList<>();

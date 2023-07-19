@@ -70,7 +70,7 @@ public class StatsClient {
         }
         ResponseEntity<Object> response;
         try {
-            response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, Object.class, parameters);
+            response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, Object.class);
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }

@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.exception.model.IncorrectDateException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -23,6 +24,7 @@ public class GetEventSearch {
     private Boolean onlyAvailable;
     private Boolean paid;
     private String text;
+    private Boolean hasRange;
 
     public static GetEventSearch of(List<Long> users, List<EventState> states, List<Long> categories,
                                     LocalDateTime rangeStart, LocalDateTime rangeEnd,
@@ -31,6 +33,11 @@ public class GetEventSearch {
         request.setUsers(users == null ? Collections.emptyList() : users);
         request.setStates(states == null ? Collections.emptyList() : states);
         request.setCategories(categories == null ? Collections.emptyList() : categories);
+        if (rangeStart == null && rangeEnd == null) {
+            request.setHasRange(false);
+        } else {
+            request.setHasRange(true);
+        }
         request.setRangeStart(rangeStart);
         request.setRangeEnd(rangeEnd);
         request.setSize(size);
@@ -44,7 +51,13 @@ public class GetEventSearch {
         GetEventSearch request = new GetEventSearch();
         request.setText(text == null ? null : text.toLowerCase());
         request.setCategories(categories == null ? Collections.emptyList() : categories);
+        if (rangeStart == null && rangeEnd == null) {
+            request.setHasRange(false);
+        } else {
+            request.setHasRange(true);
+        }
         request.setPaid(paid);
+        checkDate(request.getHasRange(), rangeStart, rangeEnd);
         request.setRangeStart(rangeStart);
         request.setRangeEnd(rangeEnd);
         request.setOnlyAvailable(onlyAvailable);
@@ -59,6 +72,12 @@ public class GetEventSearch {
             return EventSort.valueOf(sort.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void checkDate(Boolean hasRange, LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+        if (hasRange && (rangeStart.isAfter(rangeEnd) || rangeStart.isEqual(rangeEnd))) {
+            throw new IncorrectDateException("Дата начала не может быть равна или позднее даты окончания");
         }
     }
 }

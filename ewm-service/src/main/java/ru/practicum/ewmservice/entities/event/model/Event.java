@@ -7,6 +7,7 @@ import ru.practicum.ewmservice.entities.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Data
 @Builder
@@ -53,13 +54,13 @@ public class Event {
 
     @PrePersist
     public void setUpCreationDate() {
-        createdOn = LocalDateTime.now();
+        createdOn = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     @PreUpdate
     public void setUpPublishingDate() {
         if (state.equals(EventState.PUBLISHED)) {
-            publishedOn = LocalDateTime.now();
+            publishedOn = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         }
     }
 }

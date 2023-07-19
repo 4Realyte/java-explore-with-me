@@ -22,9 +22,12 @@ import ru.practicum.ewmservice.entities.user.dao.UserRepository;
 import ru.practicum.ewmservice.entities.user.model.User;
 import ru.practicum.ewmservice.exception.model.*;
 import ru.practicum.ewmservice.stats.StatsService;
+import stats.ViewStats;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.practicum.ewmservice.entities.event.model.QEvent.event;
 
@@ -48,7 +51,7 @@ public class EventServiceImpl {
                 .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
         Event event = mapper.dtoToEvent(dto, user, category);
 
-        return mapper.toFullDto(repository.save(event));
+        return mapper.toFullDto(repository.saveAndFlush(event));
     }
 
     @Transactional
@@ -97,21 +100,8 @@ public class EventServiceImpl {
             category = categoryRepository.findById(dto.getCategory())
                     .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
         }
-        if (dto.getStateAction() != null) {
-            String message;
-            switch (dto.getStateAction()) {
-                case PUBLISH_EVENT:
-                    message = "publish";
-                    break;
-                case REJECT_EVENT:
-                    message = "reject";
-                    break;
-                default:
-                    message = "";
-            }
-            if (!event.getState().equals(EventState.PENDING)) {
-                throw new ConflictException(String.format("You can't %s event with %s status", message, event.getState()));
-            }
+        if (!event.getState().equals(EventState.PENDING)) {
+            throw new ConflictException(String.format("You can't publish/reject event with %s status", event.getState()));
         }
         mapper.updateEvent(dto, event, category);
         Event updated = repository.saveAndFlush(event);
@@ -132,8 +122,9 @@ public class EventServiceImpl {
         if (participantLimit.equals(0) || !event.getRequestModeration()) {
             return mapper.toUpdateResponseDto(requests);
         }
-        checkUpdateParticipationRequest(event, participantLimit);
-
+        if (participantLimit.equals(event.getConfirmedRequests())) {
+            throw new ConflictException(String.format("Event with id %s has reached participation limit", event.getId()));
+        }
         for (Participation participation : requests) {
             int count = participantLimit - event.getConfirmedRequests();
             if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
@@ -150,7 +141,7 @@ public class EventServiceImpl {
                 participation.setStatus(ParticipationStatus.REJECTED);
             }
         }
-        repository.save(event);
+        repository.saveAndFlush(event);
         return mapper.toUpdateResponseDto(partRepository.saveAll(requests));
     }
 
@@ -217,32 +208,49 @@ public class EventServiceImpl {
         }
     }
 
-    public EventFullDto getEventById(Long eventId) {
-        Event event = repository.findById(eventId)
+    public EventFullDto getEventById(Long eventId, HttpServletRequest servletRequest) {
+        Event event = repository.findPublishedEvent(eventId)
                 .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
-        return mapper.toFullDto(event);
+
+        EventFullDto fullDto = mapper.toFullDto(event);
+
+        Optional<ViewStats> stats = statsService.getStatBySingleUri(servletRequest, event.getPublishedOn());
+        if (stats.isPresent()) {
+            int views = stats.get().getHits();
+            fullDto.setViews(views);
+        }
+        statsService.makeHit(servletRequest);
+        return fullDto;
     }
 
-    public List<EventShortDto> publicSearchEvents(GetEventSearch request) {
+    public List<EventShortDto> publicSearchEvents(GetEventSearch request, HttpServletRequest servletRequest) {
+        statsService.makeHit(servletRequest);
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(event.state.eq(EventState.PUBLISHED));
-
         checkSearchParameters(request, predicates);
-        Sort sort;
-        switch (request.getSort()) {
-            case EVENT_DATE:
-                sort = Sort.by(Sort.Direction.DESC, "eventDate");
-                break;
-            case VIEWS:
-                sort = Sort.by(Sort.Direction.DESC, "views");
-                break;
-            default:
-                sort = Sort.unsorted();
+
+        List<Event> events;
+        EventSort sort = request.getSort();
+        if (sort == EventSort.EVENT_DATE) {
+            events = repository.findAll(ExpressionUtils.allOf(predicates),
+                    PageRequest.of(request.getFrom(), request.getSize(), Sort.by(Sort.Direction.DESC, "eventDate"))).getContent();
+        } else {
+            events = repository.findAll(ExpressionUtils.allOf(predicates), PageRequest.of(request.getFrom(), request.getSize())).getContent();
         }
-        Pageable page = PageRequest.of(request.getFrom(), request.getSize(), sort);
+        Map<Long, Integer> viewMap = statsService.getHits(events);
+        List<EventShortDto> responseDto = mapper.toShortDto(events);
 
-        return mapper.toShortDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+        for (EventShortDto eventShortDto : responseDto) {
+            eventShortDto.setViews(viewMap.getOrDefault(eventShortDto.getId(), 0));
+        }
 
+        if (sort == EventSort.VIEWS) {
+            return responseDto.stream()
+                    .sorted(Comparator.comparing(EventShortDto::getViews, Comparator.reverseOrder()))
+                    .collect(Collectors.toList());
+        } else {
+            return responseDto;
+        }
     }
 
     private static void checkSearchParameters(GetEventSearch request, List<Predicate> predicates) {
@@ -250,26 +258,24 @@ public class EventServiceImpl {
             predicates.add(event.category.id.in(request.getCategories()));
         }
         String text = request.getText();
-        if (text != null && text.isBlank()) {
-            predicates.add(event.annotation.like(text).or(event.description.like(text)));
+        if (text != null && !text.isBlank()) {
+            predicates.add(event.annotation.containsIgnoreCase(text).or(event.description.containsIgnoreCase(text)));
         }
         if (request.getPaid() != null) {
             predicates.add(event.paid.eq(request.getPaid()));
         }
-        if (request.getRangeStart() != null) {
-            predicates.add(event.eventDate.goe(request.getRangeStart()));
-        }
-        if (request.getRangeEnd() != null) {
-            predicates.add(event.eventDate.loe(request.getRangeEnd()));
+        if (request.getHasRange()) {
+            if (request.getRangeStart() != null) {
+                predicates.add(event.eventDate.goe(request.getRangeStart()));
+            }
+            if (request.getRangeEnd() != null) {
+                predicates.add(event.eventDate.loe(request.getRangeEnd()));
+            }
+        } else {
+            predicates.add(event.eventDate.goe(LocalDateTime.now()));
         }
         if (request.getOnlyAvailable()) {
             predicates.add(event.participantLimit.gt(event.confirmedRequests));
-        }
-    }
-
-    private static void checkUpdateParticipationRequest(Event event, Integer participantLimit) {
-        if (participantLimit.equals(event.getConfirmedRequests())) {
-            throw new ConflictException(String.format("Event with id %s has reached participation limit", event.getId()));
         }
     }
 
