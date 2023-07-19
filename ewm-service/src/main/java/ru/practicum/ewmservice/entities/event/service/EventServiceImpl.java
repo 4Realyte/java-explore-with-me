@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmservice.entities.category.dao.CategoryRepository;
@@ -138,32 +139,6 @@ public class EventServiceImpl {
         return mapper.toUpdateResponseDto(partRepository.saveAll(requests));
     }
 
-    public List<EventFullDto> searchEvents(GetEventSearch request) {
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (!request.getUsers().isEmpty()) {
-            predicates.add(event.initiator.id.in(request.getUsers()));
-        }
-        if (!request.getCategories().isEmpty()) {
-            predicates.add(event.category.id.in(request.getCategories()));
-        }
-        if (!request.getStates().isEmpty()) {
-            predicates.add(event.state.in(request.getStates()));
-        }
-        if (request.getRangeStart() != null) {
-            predicates.add(event.eventDate.goe(request.getRangeStart()));
-        }
-        if (request.getRangeEnd() != null) {
-            predicates.add(event.eventDate.loe(request.getRangeEnd()));
-        }
-        Pageable page = PageRequest.of(request.getFrom(), request.getSize());
-        if (!predicates.isEmpty()) {
-            return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
-        } else {
-            return mapper.toFullDto(repository.findAll(page).getContent());
-        }
-    }
-
     @Transactional
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = repository.findByIdAndInitiatorId(eventId, userId)
@@ -212,6 +187,72 @@ public class EventServiceImpl {
             throw new ConflictException(String.format("Event date must be at least one hour after publish date"));
         }
         return mapper.toFullDto(updated);
+    }
+
+    public List<EventFullDto> searchEvents(GetEventSearch request) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (!request.getUsers().isEmpty()) {
+            predicates.add(event.initiator.id.in(request.getUsers()));
+        }
+        if (!request.getCategories().isEmpty()) {
+            predicates.add(event.category.id.in(request.getCategories()));
+        }
+        if (!request.getStates().isEmpty()) {
+            predicates.add(event.state.in(request.getStates()));
+        }
+        if (request.getRangeStart() != null) {
+            predicates.add(event.eventDate.goe(request.getRangeStart()));
+        }
+        if (request.getRangeEnd() != null) {
+            predicates.add(event.eventDate.loe(request.getRangeEnd()));
+        }
+        Pageable page = PageRequest.of(request.getFrom(), request.getSize());
+        if (!predicates.isEmpty()) {
+            return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+        } else {
+            return mapper.toFullDto(repository.findAll(page).getContent());
+        }
+    }
+
+    public List<EventShortDto> findAllEvents(GetEventSearch request) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(event.state.eq(EventState.PUBLISHED));
+        if (!request.getCategories().isEmpty()) {
+            predicates.add(event.category.id.in(request.getCategories()));
+        }
+        String text = request.getText();
+        if (text != null && text.isBlank()) {
+            predicates.add(event.annotation.like(text).or(event.description.like(text)));
+        }
+        if (request.getPaid() != null) {
+            predicates.add(event.paid.eq(request.getPaid()));
+        }
+        if (request.getRangeStart() != null) {
+            predicates.add(event.eventDate.goe(request.getRangeStart()));
+        }
+        if (request.getRangeEnd() != null) {
+            predicates.add(event.eventDate.loe(request.getRangeEnd()));
+        }
+        if (request.getOnlyAvailable()) {
+            predicates.add(event.participantLimit.goe(event.confirmedRequests));
+        }
+        Sort sort;
+        switch (request.getSort()) {
+            case EVENT_DATE:
+                sort = Sort.by(Sort.Direction.DESC, "eventDate");
+                break;
+            case VIEWS:
+                sort = Sort.by(Sort.Direction.DESC, "views");
+                break;
+            default:
+                sort = Sort.unsorted();
+        }
+        Pageable page = PageRequest.of(request.getFrom(), request.getSize(), sort);
+
+        return mapper.toShortDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+
     }
 
     private static void checkUpdateParticipationRequest(Event event, Integer participantLimit) {
