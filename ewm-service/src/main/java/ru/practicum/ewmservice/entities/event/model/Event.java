@@ -19,7 +19,7 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String annotation;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinColumn(name = "category_id")
     private Category category;
@@ -39,7 +39,7 @@ public class Event {
     @Column(name = "request_moderation")
     private Boolean requestModeration;
     private String title;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiator_id")
     @ToString.Exclude
     private User initiator;
