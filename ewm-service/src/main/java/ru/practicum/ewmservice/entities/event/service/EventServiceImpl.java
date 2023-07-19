@@ -21,6 +21,7 @@ import ru.practicum.ewmservice.entities.participation.model.Participation;
 import ru.practicum.ewmservice.entities.user.dao.UserRepository;
 import ru.practicum.ewmservice.entities.user.model.User;
 import ru.practicum.ewmservice.exception.model.*;
+import ru.practicum.ewmservice.stats.StatsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ public class EventServiceImpl {
     private final CategoryRepository categoryRepository;
     private final ParticipationRepository partRepository;
     private final EventMapper mapper;
+    private final StatsService statsService;
 
 
     @Transactional
@@ -47,22 +49,6 @@ public class EventServiceImpl {
         Event event = mapper.dtoToEvent(dto, user, category);
 
         return mapper.toFullDto(repository.save(event));
-    }
-
-    public List<EventShortDto> getEvents(Long userId, int from, int size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
-
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
-
-        return mapper.toShortDto(repository.findAllByInitiatorId(user.getId(), page));
-    }
-
-    public EventFullDto getInitiatorEvent(Long userId, Long eventId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
-        return mapper.toFullDto(repository.findByIdAndInitiatorId(eventId, user.getId())
-                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", userId))));
     }
 
     @Transactional
@@ -83,60 +69,6 @@ public class EventServiceImpl {
             builder.status(ParticipationStatus.PENDING);
         }
         return mapper.toPartDto(partRepository.save(builder.build()));
-    }
-
-    @Transactional
-    public ParticipationResponseDto cancelRequest(Long requestId, Long userId) {
-        Participation participation = partRepository.findByIdAndRequesterId(requestId, userId)
-                .orElseThrow(() -> new ParticipationNotFoundException(
-                        String.format("Participation with id %s is not found", requestId)));
-
-        participation.setStatus(ParticipationStatus.CANCELED);
-        return mapper.toPartDto(partRepository.saveAndFlush(participation));
-    }
-
-    public List<ParticipationResponseDto> getUserRequestsInOtherEvents(Long userId) {
-        return mapper.toPartDto(partRepository.findAllUserRequests(userId));
-    }
-
-    public List<ParticipationResponseDto> getCurrentUserRequests(Long userId, Long eventId) {
-        Event event = repository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
-
-        return mapper.toPartDto(partRepository.findAllByEventId(event.getId()));
-    }
-
-    @Transactional
-    public ParticipationUpdateResponse updateParticipations(Long userId, Long eventId, ParticipationUpdateRequest request) {
-        Event event = repository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
-
-        Integer participantLimit = event.getParticipantLimit();
-        List<Participation> requests = partRepository.findAllByIdIn(request.getRequestIds());
-
-        if (participantLimit.equals(0) || !event.getRequestModeration()) {
-            return mapper.toUpdateResponseDto(requests);
-        }
-        checkUpdateParticipationRequest(event, participantLimit);
-
-        for (Participation participation : requests) {
-            int count = participantLimit - event.getConfirmedRequests();
-            if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
-                throw new ConflictException(String.format("You can't update request with %s status", participation.getStatus()));
-            }
-            if (count > 0) {
-                if (request.getStatus() == ParticipationActionStatus.CONFIRMED) {
-                    participation.setStatus(ParticipationStatus.CONFIRMED);
-                    event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-                } else {
-                    participation.setStatus(ParticipationStatus.REJECTED);
-                }
-            } else {
-                participation.setStatus(ParticipationStatus.REJECTED);
-            }
-        }
-        repository.save(event);
-        return mapper.toUpdateResponseDto(partRepository.saveAll(requests));
     }
 
     @Transactional
@@ -189,7 +121,77 @@ public class EventServiceImpl {
         return mapper.toFullDto(updated);
     }
 
-    public List<EventFullDto> searchEvents(GetEventSearch request) {
+    @Transactional
+    public ParticipationUpdateResponse updateParticipations(Long userId, Long eventId, ParticipationUpdateRequest request) {
+        Event event = repository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+
+        Integer participantLimit = event.getParticipantLimit();
+        List<Participation> requests = partRepository.findAllByIdIn(request.getRequestIds());
+
+        if (participantLimit.equals(0) || !event.getRequestModeration()) {
+            return mapper.toUpdateResponseDto(requests);
+        }
+        checkUpdateParticipationRequest(event, participantLimit);
+
+        for (Participation participation : requests) {
+            int count = participantLimit - event.getConfirmedRequests();
+            if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
+                throw new ConflictException(String.format("You can't update request with %s status", participation.getStatus()));
+            }
+            if (count > 0) {
+                if (request.getStatus() == ParticipationActionStatus.CONFIRMED) {
+                    participation.setStatus(ParticipationStatus.CONFIRMED);
+                    event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+                } else {
+                    participation.setStatus(ParticipationStatus.REJECTED);
+                }
+            } else {
+                participation.setStatus(ParticipationStatus.REJECTED);
+            }
+        }
+        repository.save(event);
+        return mapper.toUpdateResponseDto(partRepository.saveAll(requests));
+    }
+
+    @Transactional
+    public ParticipationResponseDto cancelRequest(Long requestId, Long userId) {
+        Participation participation = partRepository.findByIdAndRequesterId(requestId, userId)
+                .orElseThrow(() -> new ParticipationNotFoundException(
+                        String.format("Participation with id %s is not found", requestId)));
+
+        participation.setStatus(ParticipationStatus.CANCELED);
+        return mapper.toPartDto(partRepository.saveAndFlush(participation));
+    }
+
+    public List<EventShortDto> getAllUserEvents(Long userId, int from, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
+
+        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
+
+        return mapper.toShortDto(repository.findAllByInitiatorId(user.getId(), page));
+    }
+
+    public EventFullDto getEventByInitiator(Long userId, Long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
+        return mapper.toFullDto(repository.findByIdAndInitiatorId(eventId, user.getId())
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", userId))));
+    }
+
+    public List<ParticipationResponseDto> getUserRequestsInOtherEvents(Long userId) {
+        return mapper.toPartDto(partRepository.findAllUserRequests(userId));
+    }
+
+    public List<ParticipationResponseDto> getCurrentUserRequests(Long userId, Long eventId) {
+        Event event = repository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+
+        return mapper.toPartDto(partRepository.findAllByEventId(event.getId()));
+    }
+
+    public List<EventFullDto> adminSearchEvents(GetEventSearch request) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (!request.getUsers().isEmpty()) {
@@ -215,10 +217,35 @@ public class EventServiceImpl {
         }
     }
 
-    public List<EventShortDto> findAllEvents(GetEventSearch request) {
-        List<Predicate> predicates = new ArrayList<>();
+    public EventFullDto getEventById(Long eventId) {
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        return mapper.toFullDto(event);
+    }
 
+    public List<EventShortDto> publicSearchEvents(GetEventSearch request) {
+        List<Predicate> predicates = new ArrayList<>();
         predicates.add(event.state.eq(EventState.PUBLISHED));
+
+        checkSearchParameters(request, predicates);
+        Sort sort;
+        switch (request.getSort()) {
+            case EVENT_DATE:
+                sort = Sort.by(Sort.Direction.DESC, "eventDate");
+                break;
+            case VIEWS:
+                sort = Sort.by(Sort.Direction.DESC, "views");
+                break;
+            default:
+                sort = Sort.unsorted();
+        }
+        Pageable page = PageRequest.of(request.getFrom(), request.getSize(), sort);
+
+        return mapper.toShortDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
+
+    }
+
+    private static void checkSearchParameters(GetEventSearch request, List<Predicate> predicates) {
         if (!request.getCategories().isEmpty()) {
             predicates.add(event.category.id.in(request.getCategories()));
         }
@@ -236,23 +263,8 @@ public class EventServiceImpl {
             predicates.add(event.eventDate.loe(request.getRangeEnd()));
         }
         if (request.getOnlyAvailable()) {
-            predicates.add(event.participantLimit.goe(event.confirmedRequests));
+            predicates.add(event.participantLimit.gt(event.confirmedRequests));
         }
-        Sort sort;
-        switch (request.getSort()) {
-            case EVENT_DATE:
-                sort = Sort.by(Sort.Direction.DESC, "eventDate");
-                break;
-            case VIEWS:
-                sort = Sort.by(Sort.Direction.DESC, "views");
-                break;
-            default:
-                sort = Sort.unsorted();
-        }
-        Pageable page = PageRequest.of(request.getFrom(), request.getSize(), sort);
-
-        return mapper.toShortDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
-
     }
 
     private static void checkUpdateParticipationRequest(Event event, Integer participantLimit) {

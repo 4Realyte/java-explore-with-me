@@ -3,10 +3,8 @@ package ru.practicum.ewmservice.controllers.pub;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
 import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
@@ -32,6 +30,11 @@ public class PublicEventController {
                                              @RequestParam(required = false) String sort,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size) {
-        return service.findAllEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size));
+        return service.publicSearchEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size));
+    }
+
+    @GetMapping("/{id}")
+    public EventFullDto getEventById(@PathVariable("id") Long id) {
+       return service.getEventById(id);
     }
 }
