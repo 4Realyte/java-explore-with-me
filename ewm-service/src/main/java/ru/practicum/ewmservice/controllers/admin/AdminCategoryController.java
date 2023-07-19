@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.category.dto.CategoryRequestDto;
 import ru.practicum.ewmservice.entities.category.dto.CategoryResponseDto;
-import ru.practicum.ewmservice.entities.category.service.CategoryServiceImpl;
+import ru.practicum.ewmservice.entities.category.service.CategoryService;
 
 import javax.validation.Valid;
 
@@ -15,7 +15,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping("/admin/categories")
 public class AdminCategoryController {
-    private final CategoryServiceImpl service;
+    private final CategoryService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

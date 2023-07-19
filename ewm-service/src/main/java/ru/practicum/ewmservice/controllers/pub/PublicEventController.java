@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
-import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
+import ru.practicum.ewmservice.entities.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/events")
 @Validated
 public class PublicEventController {
-    private final EventServiceImpl service;
+    private final EventService service;
 
     @GetMapping
     public List<EventShortDto> findAllEvents(@RequestParam(required = false) String text,

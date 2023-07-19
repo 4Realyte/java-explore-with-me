@@ -7,7 +7,7 @@ import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.model.EventState;
-import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
+import ru.practicum.ewmservice.entities.event.service.EventService;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/admin/events")
 public class AdminEventController {
-    private final EventServiceImpl service;
+    private final EventService service;
 
     @GetMapping
     public List<EventFullDto> searchEvents(@RequestParam(required = false) List<Long> users,

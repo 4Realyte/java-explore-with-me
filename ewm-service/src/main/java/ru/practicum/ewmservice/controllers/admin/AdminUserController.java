@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.user.dto.NewUserRequest;
 import ru.practicum.ewmservice.entities.user.dto.UserDto;
-import ru.practicum.ewmservice.entities.user.service.UserServiceImpl;
+import ru.practicum.ewmservice.entities.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collections;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/admin/users")
 @Validated
 public class AdminUserController {
-    private final UserServiceImpl service;
+    private final UserService service;
 
     @GetMapping
     public List<UserDto> findUsers(@RequestParam(required = false) List<Long> ids,

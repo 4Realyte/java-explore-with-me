@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.category.dto.CategoryResponseDto;
-import ru.practicum.ewmservice.entities.category.service.CategoryServiceImpl;
+import ru.practicum.ewmservice.entities.category.service.CategoryService;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class PublicCategoryController {
-    private final CategoryServiceImpl service;
+    private final CategoryService service;
 
     @GetMapping
     public List<CategoryResponseDto> getCategories(@RequestParam(defaultValue = "0") int from,

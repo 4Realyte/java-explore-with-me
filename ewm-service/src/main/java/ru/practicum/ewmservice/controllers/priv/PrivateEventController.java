@@ -8,7 +8,7 @@ import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
-import ru.practicum.ewmservice.entities.event.service.EventServiceImpl;
+import ru.practicum.ewmservice.entities.event.service.EventService;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateRequest;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
@@ -21,7 +21,7 @@ import java.util.List;
 @Validated
 @RequestMapping("/users/{userId}")
 public class PrivateEventController {
-    private final EventServiceImpl service;
+    private final EventService service;
 
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)

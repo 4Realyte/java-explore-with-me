@@ -6,14 +6,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.compilation.dto.CompilationRequestDto;
 import ru.practicum.ewmservice.entities.compilation.dto.CompilationResponseDto;
-import ru.practicum.ewmservice.entities.compilation.service.CompilationServiceImpl;
+import ru.practicum.ewmservice.entities.compilation.service.CompilationService;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/compilations")
 @Validated
 public class AdminCompilationController {
-    private final CompilationServiceImpl service;
+    private final CompilationService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

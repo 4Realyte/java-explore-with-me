@@ -34,7 +34,7 @@ import static ru.practicum.ewmservice.entities.event.model.QEvent.event;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class EventServiceImpl {
+public class EventServiceImpl implements EventService {
     private final EventRepository repository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;

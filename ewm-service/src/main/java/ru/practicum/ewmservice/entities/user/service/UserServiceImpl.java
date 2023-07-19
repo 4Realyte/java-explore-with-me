@@ -21,7 +21,7 @@ import static ru.practicum.ewmservice.entities.user.model.QUser.user;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
     private final UserRepository repository;
     private final UserMapper mapper;
 
