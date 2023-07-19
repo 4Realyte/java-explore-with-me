@@ -25,9 +25,7 @@ public class Event {
     @JoinColumn(name = "category_id")
     private Category category;
     @Column(name = "confirmed_requests")
-    @Formula(value = "SELECT COALESCE(COUNT(r.id), 0) " +
-            "FROM REQUESTS as r " +
-            "WHERE r.EVENT_ID = id AND r.STATUS = 'CONFIRMED'")
+    @Formula(value = "(SELECT COALESCE(COUNT(R.id),0) FROM REQUESTS AS R WHERE R.event_id = ID AND R.status = 'CONFIRMED')")
     private Integer confirmedRequests;
     private String description;
     @Column(name = "event_date")
