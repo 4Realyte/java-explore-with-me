@@ -20,7 +20,6 @@ import static ru.practicum.ewmservice.entities.user.model.QUser.user;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
     private final UserMapper mapper;
@@ -31,6 +30,7 @@ public class UserServiceImpl implements UserService {
         return mapper.toUserDto(repository.save(newUser));
     }
 
+    @Transactional(readOnly = true)
     public List<UserDto> findUsers(List<Long> ids, int from, int size) {
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(Sort.Direction.ASC, "id"));
         List<UserDto> dtos;
