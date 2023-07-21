@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
+import ru.practicum.ewmservice.entities.event.model.Location;
 import ru.practicum.ewmservice.entities.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +31,8 @@ public class PublicEventController {
                                              @RequestParam(required = false) String sort,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size,
-                                             HttpServletRequest servletRequest) {
+                                             HttpServletRequest servletRequest,
+                                             Location location) {
         return service.publicSearchEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size), servletRequest);
     }
 
