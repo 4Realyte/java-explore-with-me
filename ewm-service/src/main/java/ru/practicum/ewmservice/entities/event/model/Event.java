@@ -3,6 +3,7 @@ package ru.practicum.ewmservice.entities.event.model;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 import ru.practicum.ewmservice.entities.category.model.Category;
+import ru.practicum.ewmservice.entities.location.model.Location;
 import ru.practicum.ewmservice.entities.user.model.User;
 
 import javax.persistence.*;
@@ -30,7 +31,9 @@ public class Event {
     private String description;
     @Column(name = "event_date")
     private LocalDateTime eventDate;
-    @Embedded
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    @ToString.Exclude
     private Location location;
     private Boolean paid;
     @Column(name = "participant_limit")

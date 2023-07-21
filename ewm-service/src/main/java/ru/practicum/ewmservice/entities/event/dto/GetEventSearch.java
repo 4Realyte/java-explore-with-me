@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 import ru.practicum.ewmservice.exception.model.IncorrectDateException;
 
 import java.time.LocalDateTime;
@@ -25,10 +26,11 @@ public class GetEventSearch {
     private Boolean paid;
     private String text;
     private Boolean hasRange;
+    private LocationRequestDto location;
 
     public static GetEventSearch of(List<Long> users, List<EventState> states, List<Long> categories,
                                     LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                    int from, int size) {
+                                    int from, int size, LocationRequestDto location) {
         GetEventSearch request = new GetEventSearch();
         request.setUsers(users == null ? Collections.emptyList() : users);
         request.setStates(states == null ? Collections.emptyList() : states);
@@ -42,12 +44,13 @@ public class GetEventSearch {
         request.setRangeEnd(rangeEnd);
         request.setSize(size);
         request.setFrom(from > 0 ? from / size : 0);
+        request.setLocation(location.isRequired() ? location : null);
         return request;
     }
 
     public static GetEventSearch of(String text, List<Long> categories, Boolean paid,
                                     LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                    Boolean onlyAvailable, String sort, int from, int size) {
+                                    Boolean onlyAvailable, String sort, int from, int size, LocationRequestDto location) {
         GetEventSearch request = new GetEventSearch();
         request.setText(text == null ? null : text.toLowerCase());
         request.setCategories(categories == null ? Collections.emptyList() : categories);
@@ -64,6 +67,7 @@ public class GetEventSearch {
         request.setSort(sort == null ? EventSort.UNSORTED : convertSort(sort));
         request.setSize(size);
         request.setFrom(from > 0 ? from / size : 0);
+        request.setLocation(location.isRequired() ? location : null);
         return request;
     }
 

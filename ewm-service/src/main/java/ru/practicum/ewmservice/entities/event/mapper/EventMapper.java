@@ -10,6 +10,8 @@ import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.location.mapper.LocationMapper;
+import ru.practicum.ewmservice.entities.location.model.Location;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationStatus;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
@@ -22,12 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class, LocationMapper.class})
 public interface EventMapper {
     @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "category", source = "category")
     @Mapping(ignore = true, target = "id")
-    Event dtoToEvent(NewEventDto dto, User initiator, Category category);
+    @Mapping(target = "location", source = "location")
+    Event dtoToEvent(NewEventDto dto, User initiator, Category category, Location location);
 
     EventFullDto toFullDto(Event event);
 
@@ -55,7 +58,7 @@ public interface EventMapper {
                 .build();
     }
 
-    default void updateEvent(UpdateEventUserRequest dto, Event event, Category category) {
+    default void updateEvent(UpdateEventUserRequest dto, Event event, Category category, Location location) {
         if (dto == null) {
             return;
         }
@@ -71,8 +74,8 @@ public interface EventMapper {
         if (dto.getEventDate() != null) {
             event.setEventDate(dto.getEventDate());
         }
-        if (dto.getLocation() != null) {
-            event.setLocation(dto.getLocation());
+        if (location != null) {
+            event.setLocation(location);
         }
         if (dto.getPaid() != null) {
             event.setPaid(dto.getPaid());

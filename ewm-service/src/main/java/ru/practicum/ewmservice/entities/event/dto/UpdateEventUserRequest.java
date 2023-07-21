@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import ru.practicum.ewmservice.entities.event.model.Location;
 import ru.practicum.ewmservice.entities.event.utils.EventDate;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class UpdateEventUserRequest {
     private String description;
     @EventDate
     private LocalDateTime eventDate;
-    private Location location;
+    private LocationRequestDto location;
     private Boolean paid;
     private Integer participantLimit;
     private Boolean requestModeration;

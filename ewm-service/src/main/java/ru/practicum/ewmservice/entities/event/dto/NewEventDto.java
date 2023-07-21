@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import ru.practicum.ewmservice.entities.event.model.Location;
 import ru.practicum.ewmservice.entities.event.utils.EventDate;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -31,7 +31,7 @@ public class NewEventDto {
     @EventDate
     private LocalDateTime eventDate;
     @NotNull
-    private Location location;
+    private LocationRequestDto location;
     @Builder.Default
     private Boolean paid = false;
     @Builder.Default
