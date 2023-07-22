@@ -30,6 +30,7 @@ public interface EventMapper {
     @Mapping(target = "category", source = "category")
     @Mapping(ignore = true, target = "id")
     @Mapping(target = "location", source = "location")
+    @Mapping(ignore = true, target = "state")
     Event dtoToEvent(NewEventDto dto, User initiator, Category category, Location location);
 
     EventFullDto toFullDto(Event event);

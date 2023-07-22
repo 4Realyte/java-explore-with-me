@@ -55,7 +55,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
-        Location location = locationService.addLocation(dto.getLocation());
+        Location location = locationService.addLocationByUser(dto.getLocation());
 
         Event event = mapper.dtoToEvent(dto, user, category, location);
 

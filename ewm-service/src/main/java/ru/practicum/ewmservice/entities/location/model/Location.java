@@ -25,4 +25,6 @@ public class Location {
     private Float rad;
     @Column(name = "location_name")
     private String locationName;
+    @Enumerated(EnumType.STRING)
+    private LocationState state;
 }

@@ -11,6 +11,7 @@ import ru.practicum.ewmservice.entities.event.service.EventService;
 import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class PublicEventController {
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size,
                                              HttpServletRequest servletRequest,
-                                             LocationRequestDto location) {
+                                             @Valid LocationRequestDto location) {
         return service.publicSearchEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable,
                 sort, from, size, location), servletRequest);
     }

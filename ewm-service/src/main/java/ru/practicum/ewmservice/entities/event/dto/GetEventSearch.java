@@ -44,7 +44,7 @@ public class GetEventSearch {
         request.setRangeEnd(rangeEnd);
         request.setSize(size);
         request.setFrom(from > 0 ? from / size : 0);
-        request.setLocation(location.isRequired() ? location : null);
+        request.setLocation(checkRequired(location) ? location : null);
         return request;
     }
 
@@ -67,7 +67,7 @@ public class GetEventSearch {
         request.setSort(sort == null ? EventSort.UNSORTED : convertSort(sort));
         request.setSize(size);
         request.setFrom(from > 0 ? from / size : 0);
-        request.setLocation(location.isRequired() ? location : null);
+        request.setLocation(checkRequired(location) ? location : null);
         return request;
     }
 
@@ -83,5 +83,12 @@ public class GetEventSearch {
         if (hasRange && (rangeStart.isAfter(rangeEnd) || rangeStart.isEqual(rangeEnd))) {
             throw new IncorrectDateException("Дата начала не может быть равна или позднее даты окончания");
         }
+    }
+
+    private static boolean checkRequired(LocationRequestDto dto) {
+        if (dto.getLat() == null && dto.getLon() == null && dto.getRad() == null) {
+            return false;
+        }
+        return true;
     }
 }

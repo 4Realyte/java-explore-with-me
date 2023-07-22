@@ -11,7 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
-public class LocationResponseDto {
+public class LocationShortDto {
     private float lon;
     private float lat;
 }
