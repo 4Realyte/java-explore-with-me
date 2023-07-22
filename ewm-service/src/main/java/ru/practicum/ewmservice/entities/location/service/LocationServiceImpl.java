@@ -58,6 +58,7 @@ public class LocationServiceImpl {
         repository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<LocationFullDto> findLocations(int from, int size, Boolean onlyConfirmed, String name) {
         Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
         BooleanBuilder builder = new BooleanBuilder();

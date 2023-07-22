@@ -12,7 +12,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({ TYPE, ANNOTATION_TYPE })
 @Retention(RUNTIME)
-@Constraint(validatedBy = {  })
+@Constraint(validatedBy = { LocationRequestValidator.class })
 @Documented
 public @interface LocationRequest {
     String message() default "Location request must contain lon, lat and rad attributes";
