@@ -17,6 +17,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.maps</groupId>
+            <artifactId>google-maps-services</artifactId>
+            <version>2.2.0</version>
+        </dependency>
         <!--Spring framework starters-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

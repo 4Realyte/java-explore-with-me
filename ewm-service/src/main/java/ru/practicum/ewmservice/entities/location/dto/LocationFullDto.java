@@ -1,5 +1,6 @@
 package ru.practicum.ewmservice.entities.location.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +19,7 @@ public class LocationFullDto {
     private Float lon;
     private Float rad;
     private String locationName;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String address;
     private LocationState state;
 }

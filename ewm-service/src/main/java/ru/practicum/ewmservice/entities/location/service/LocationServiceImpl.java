@@ -18,16 +18,19 @@ import ru.practicum.ewmservice.entities.location.mapper.LocationMapper;
 import ru.practicum.ewmservice.entities.location.model.Location;
 import ru.practicum.ewmservice.entities.location.model.LocationState;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static ru.practicum.ewmservice.entities.location.model.QLocation.location;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class LocationServiceImpl {
+public class LocationServiceImpl implements LocationService {
     private final LocationRepository repository;
     private final LocationMapper mapper;
+    private final GeocodingService geocodingService;
 
     public Location addLocationByUser(LocationRequestDto dto) {
         Location location = mapper.dtoToLocation(dto);
@@ -37,8 +40,12 @@ public class LocationServiceImpl {
     }
 
     public LocationFullDto addLocationByAdmin(NewLocationDto dto) {
+        String address = geocodingService.getAddress(dto.getLat(), dto.getLon());
         Location location = mapper.newDtoToLocation(dto);
         location.setState(LocationState.CONFIRMED);
+        if (!address.isEmpty()) {
+            location.setAddress(address);
+        }
         return mapper.toFullDto(repository.save(location));
     }
 
@@ -52,6 +59,17 @@ public class LocationServiceImpl {
     public LocationFullDto updateLocationByAdmin(LocationUpdateRequestDto dto, Long locId) {
         Location location = repository.findById(locId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found"));
+        Float lon = dto.getLon();
+        Float lat = dto.getLat();
+        Map<String, Float> coordinates = coordinatesToUpdate(lon, lat, location);
+        if (!coordinates.isEmpty()) {
+            String address = geocodingService.getAddress(
+                    coordinates.getOrDefault("lat", location.getLat()),
+                    coordinates.getOrDefault("lon", location.getLon()));
+            if (!address.isEmpty()) {
+                location.setAddress(address);
+            }
+        }
         mapper.updateLocation(dto, location);
         return mapper.toFullDto(repository.save(location));
     }
@@ -79,5 +97,16 @@ public class LocationServiceImpl {
             content = repository.findAll(page).getContent();
         }
         return mapper.toFullDto(content);
+    }
+
+    private Map<String, Float> coordinatesToUpdate(Float lon, Float lat, Location location) {
+        Map<String, Float> map = new HashMap<>(2);
+        if (lon != null && !lon.equals(location.getLon())) {
+            map.put("lon", lon);
+        }
+        if (lat != null && !lat.equals(location.getLat())) {
+            map.put("lat", lat);
+        }
+        return map;
     }
 }

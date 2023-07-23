@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.entities.location.dto.LocationFullDto;
 import ru.practicum.ewmservice.entities.location.dto.LocationUpdateRequestDto;
 import ru.practicum.ewmservice.entities.location.dto.NewLocationDto;
-import ru.practicum.ewmservice.entities.location.service.LocationServiceImpl;
+import ru.practicum.ewmservice.entities.location.service.LocationService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/admin/locations")
 public class AdminLocationController {
-    private final LocationServiceImpl service;
+    private final LocationService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

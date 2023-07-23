@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS locations
     lon           float(4),
     rad           float(4),
     location_name varchar(200),
+    location_address varchar(300),
     state varchar(10),
     created_on timestamp,
     CONSTRAINT UQ_LOCATION UNIQUE (lat, lon, rad)

@@ -27,6 +27,8 @@ public class Location {
     private Float rad;
     @Column(name = "location_name")
     private String locationName;
+    @Column(name = "location_address")
+    private String address;
     @Enumerated(EnumType.STRING)
     private LocationState state;
     @Column(name = "created_on")
