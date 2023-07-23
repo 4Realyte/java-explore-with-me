@@ -4,6 +4,7 @@ import com.querydsl.core.BooleanBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class LocationServiceImpl {
     public Location addLocationByUser(LocationRequestDto dto) {
         Location location = mapper.dtoToLocation(dto);
         location.setState(LocationState.PENDING);
+        location.setRad(dto.getRad() == null ? 0.4f : dto.getRad());
         return repository.save(location);
     }
 
@@ -60,7 +62,7 @@ public class LocationServiceImpl {
 
     @Transactional(readOnly = true)
     public List<LocationFullDto> findLocations(int from, int size, Boolean onlyConfirmed, String name) {
-        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size);
+        Pageable page = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by(Sort.Direction.DESC, "createdOn"));
         BooleanBuilder builder = new BooleanBuilder();
         if (onlyConfirmed != null) {
             if (onlyConfirmed) {

@@ -216,6 +216,7 @@ public class EventServiceImpl implements EventService {
         if (request.getRangeEnd() != null) {
             predicates.add(event.eventDate.loe(request.getRangeEnd()));
         }
+        getLocationSearch(request, predicates);
         Pageable page = PageRequest.of(request.getFrom(), request.getSize());
         if (!predicates.isEmpty()) {
             return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
@@ -293,6 +294,10 @@ public class EventServiceImpl implements EventService {
         if (request.getOnlyAvailable()) {
             predicates.add(event.participantLimit.gt(event.confirmedRequests));
         }
+        getLocationSearch(request, predicates);
+    }
+
+    private static void getLocationSearch(GetEventSearch request, List<Predicate> predicates) {
         LocationRequestDto location = request.getLocation();
         if (location != null) {
             BooleanExpression expression = Expressions.numberTemplate(Float.class,

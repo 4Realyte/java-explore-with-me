@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Data
 @Builder
@@ -27,4 +29,11 @@ public class Location {
     private String locationName;
     @Enumerated(EnumType.STRING)
     private LocationState state;
+    @Column(name = "created_on")
+    private LocalDateTime createdOn;
+
+    @PrePersist
+    public void setUpCreationDate() {
+        createdOn = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    }
 }

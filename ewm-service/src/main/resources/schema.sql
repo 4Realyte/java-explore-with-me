@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS locations
     rad           float(4),
     location_name varchar(200),
     state varchar(10),
+    created_on timestamp,
     CONSTRAINT UQ_LOCATION UNIQUE (lat, lon, rad)
 );
 CREATE TABLE IF NOT EXISTS events

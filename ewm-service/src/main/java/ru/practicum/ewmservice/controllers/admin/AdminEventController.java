@@ -28,7 +28,7 @@ public class AdminEventController {
                                            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                            @RequestParam(defaultValue = "0") int from,
                                            @RequestParam(defaultValue = "10") int size,
-                                           LocationRequestDto location) {
+                                           @Valid LocationRequestDto location) {
         return service.adminSearchEvents(GetEventSearch.of(users, states, categories, rangeStart, rangeEnd, from, size, location));
     }
 

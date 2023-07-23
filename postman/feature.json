@@ -1,0 +1,2533 @@
+{
+	"info": {
+		"_postman_id": "9e9b62aa-557c-4d01-a0b6-4c64a08be1cd",
+		"name": "Test Location Api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25925911"
+	},
+	"item": [
+		{
+			"name": "Добавление новой локации",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"const source = JSON.parse(pm.request.body.raw);",
+							"const target = pm.response.json();",
+							"pm.collectionVariables.set('location',target);",
+							"",
+							"pm.test(\"Локация должна содержать поля: id, lat, lon, rad, locationName, state\", function () {",
+							"    pm.expect(target).to.have.property('id');",
+							"    pm.expect(target).to.have.property('locationName');",
+							"    pm.expect(target).to.have.property('lat');",
+							"    pm.expect(target).to.have.property('lon');",
+							"    pm.expect(target).to.have.property('rad');",
+							"    pm.expect(target).to.have.property('state');",
+							"});",
+							"",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+							"    pm.expect(target.id).to.not.be.null;",
+							"    pm.expect(source.locationName).equal(target.locationName, 'Имя локации должно соответствовать отправленному в запросе');",
+							"    pm.expect(target.state).equal('CONFIRMED', 'Статус локации должен быть CONFIRMED');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации с пустым именованием",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    location[\"locationName\"] = '';",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации с именованием < 3  символов",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    location[\"locationName\"] = 'se';",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации с именованием > 30  символов",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    location[\"locationName\"] = 'sedndakdakdadlkadadadadadadsadsas';",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации без поля lat",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    delete location[\"lat\"];",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации без поля lon",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    delete location[\"lon\"];",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации без поля rad",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    let location;",
+							"    try {",
+							"        location = rnd.getLocation();",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"    delete location[\"rad\"];",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Добавление новой локации c идентичными координатами",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"    let locations = await api.findLocations(true);",
+							"    let location = locations[0];",
+							"    pm.request.body.update({",
+							"        mode: 'raw',",
+							"        raw: JSON.stringify(location),",
+							"        options: { raw: { language: 'json' } }",
+							"    });",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 409 и данные в формате json\", function () {",
+							"    pm.response.to.have.status(409);",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Удаление локации",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        const location = await api.addLocation(rnd.getLocation());",
+							"        pm.collectionVariables.set(\"loc\", location.id);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск подтвержденных локаций админом",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"const target = pm.response.json();",
+							"pm.test(\"Должна быть найдена только одна локация\", function () {",
+							"    pm.expect(target.length).to.eql(1);",
+							"});",
+							"",
+							"pm.test(\"Локация должна содержать поля: id, lat, lon, rad, locationName, state\", function () {",
+							"    pm.expect(target[0]).to.have.property('id');",
+							"    pm.expect(target[0]).to.have.property('locationName');",
+							"    pm.expect(target[0]).to.have.property('lat');",
+							"    pm.expect(target[0]).to.have.property('lon');",
+							"    pm.expect(target[0]).to.have.property('rad');",
+							"    pm.expect(target[0]).to.have.property('state');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations?onlyConfirmed=true",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations"
+					],
+					"query": [
+						{
+							"key": "onlyConfirmed",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Обновление локации админом",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							" try {",
+							"    let locations = await api.findLocations(true);",
+							"    let locId = locations[0].id;",
+							"    let rndLocation = rnd.getLocation();",
+							"    pm.collectionVariables.set(\"loc\", locId);",
+							"    pm.collectionVariables.set('response', rndLocation);",
+							"    pm.request.body.update({",
+							"            mode: 'raw',",
+							"            raw: JSON.stringify({",
+							"                lat: rndLocation.lat,",
+							"                lon: rndLocation.lon,",
+							"                rad: 1.7,",
+							"                locationName: rndLocation.locationName",
+							"            }),",
+							"            options: { raw: { language: 'json' } }",
+							"        });",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"});",
+							"",
+							"const target = pm.response.json();",
+							"const source = pm.collectionVariables.get('response');",
+							"",
+							"pm.test(\"Локация должна содержать поля: id, lat, lon, rad, locationName, state\", function () {",
+							"    pm.expect(target).to.have.property('id');",
+							"    pm.expect(target).to.have.property('locationName');",
+							"    pm.expect(target).to.have.property('lat');",
+							"    pm.expect(target).to.have.property('lon');",
+							"    pm.expect(target).to.have.property('rad');",
+							"    pm.expect(target).to.have.property('state');",
+							"});",
+							"",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+							"    pm.expect(target.id).to.not.be.null;",
+							"    pm.expect(target.locationName).equal(source.locationName, 'Имя локации должно соответствовать отправленному в запросе');",
+							"    pm.expect(target.lon).equal(source.lon, 'Долгота локации должна соответствовать отправленному в запросе');",
+							"    pm.expect(target.lat).equal(source.lat, 'Широта локации должна соответствовать отправленному в запросе');",
+							"    pm.expect(target.rad).equal(1.7, 'Радиус локации должен соответствовать отправленному в запросе');",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"lat\": 68.157,\n    \"lon\": 65.187,\n    \"rad\": 1.7,\n    \"locationName\": \"Rock Concert\",\n    \"state\": \"REJECT_LOCATION\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Обновление локации админом с пустым именованием",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							" try {",
+							"    let locations = await api.findLocations(true);",
+							"    let locId = locations[0].id;",
+							"    let rndLocation = rnd.getLocation();",
+							"    pm.collectionVariables.set(\"loc\", locId);",
+							"    pm.request.body.update({",
+							"            mode: 'raw',",
+							"            raw: JSON.stringify({",
+							"                lat: rndLocation.lat,",
+							"                lon: rndLocation.lon,",
+							"                rad: 1.7,",
+							"                locationName: '',",
+							"                state: \"REJECT_LOCATION\"",
+							"            }),",
+							"            options: { raw: { language: 'json' } }",
+							"        });",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"lat\": 68.157,\n    \"lon\": 65.187,\n    \"rad\": 1.7,\n    \"locationName\": \"Rock Concert\",\n    \"state\": \"REJECT_LOCATION\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Обновление локации админом с пустым именованием < 3 символов",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							" try {",
+							"    let locations = await api.findLocations(true);",
+							"    let locId = locations[0].id;",
+							"    let rndLocation = rnd.getLocation();",
+							"    pm.collectionVariables.set(\"loc\", locId);",
+							"    pm.request.body.update({",
+							"            mode: 'raw',",
+							"            raw: JSON.stringify({",
+							"                lat: rndLocation.lat,",
+							"                lon: rndLocation.lon,",
+							"                rad: 1.7,",
+							"                locationName: 'es',",
+							"                state: \"REJECT_LOCATION\"",
+							"            }),",
+							"            options: { raw: { language: 'json' } }",
+							"        });",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"lat\": 68.157,\n    \"lon\": 65.187,\n    \"rad\": 1.7,\n    \"locationName\": \"Rock Concert\",\n    \"state\": \"REJECT_LOCATION\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Обновление локации админом с пустым именованием > 30 символов",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							" try {",
+							"    let locations = await api.findLocations(true);",
+							"    let locId = locations[0].id;",
+							"    let rndLocation = rnd.getLocation();",
+							"    pm.collectionVariables.set(\"loc\", locId);",
+							"    pm.request.body.update({",
+							"            mode: 'raw',",
+							"            raw: JSON.stringify({",
+							"                lat: rndLocation.lat,",
+							"                lon: rndLocation.lon,",
+							"                rad: 1.7,",
+							"                locationName: 'sedndakdakdadlkadadadadadadsadsas',",
+							"                state: \"REJECT_LOCATION\"",
+							"            }),",
+							"            options: { raw: { language: 'json' } }",
+							"        });",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"lat\": 68.157,\n    \"lon\": 65.187,\n    \"rad\": 1.7,\n    \"locationName\": \"Rock Concert\",\n    \"state\": \"REJECT_LOCATION\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск событий по локации (удаление ранее добавленной локации)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        const user = await api.addUser(rnd.getUser());",
+							"        const category = await api.addCategory(rnd.getCategory());",
+							"        let event = await api.addEvent(user.id, rnd.getEvent(category.id));",
+							"        event = await api.publishEvent(event.id);",
+							"        pm.request.addQueryParams([`lat=` + event.location.lat, 'lon=' + event.location.lon, 'rad=' + 1.4]);",
+							"        pm.collectionVariables.set('response', event);",
+							"        pm.collectionVariables.set('eventId', event.id);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"const source = pm.collectionVariables.get('response');",
+							"const target = pm.response.json()[0];",
+							"",
+							"pm.test(\"Событие должно содержать поля: id, title, annotation, category, paid, eventDate, initiator, views, confirmedRequests\", function () {",
+							"pm.expect(target).to.have.property('id');",
+							"pm.expect(target).to.have.property('title');",
+							"pm.expect(target).to.have.property('annotation');",
+							"pm.expect(target).to.have.property('category');",
+							"pm.expect(target).to.have.property('paid');",
+							"pm.expect(target).to.have.property('eventDate');",
+							"pm.expect(target).to.have.property('initiator');",
+							"pm.expect(target).to.have.property('views');",
+							"pm.expect(target).to.have.property('confirmedRequests');",
+							"});",
+							"",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+							"    pm.expect(source.annotation).equal(target.annotation, 'Аннотация события должна соответствовать аннотации события с указанным идентификатором');",
+							"    pm.expect(source.category.id).equal(target.category.id, 'Категория события должна соответствовать категории события с указанным идентификатором');",
+							"    pm.expect(source.paid.toString()).equal(target.paid.toString(), 'Стоимость события должна соответствовать стоимости события с указанным идентификатором');",
+							"    pm.expect(source.eventDate).equal(target.eventDate, 'Дата проведения события должна соответствовать дате проведения события с указанным идентификатором');",
+							"    pm.expect(source.title).equal(target.title, 'Название события должно соответствовать названию события с указанным идентификатором');",
+							"    pm.expect(source.location.lat).equal(source.location.lat, 'Долгота события должна соответствовать долготе события с указанным идентификатором');",
+							"    pm.expect(source.location.lon).equal(source.location.lon, 'Название события должно соответствовать названию события с указанным идентификатором');",
+							"});",
+							"",
+							"let location = pm.collectionVariables.get('location');",
+							"let body",
+							"const req = {",
+							"                url: \"http://localhost:8080/admin/locations/\" + location.id,",
+							"                method: \"DELETE\",",
+							"                body: body == null ? \"\" : JSON.stringify(body),",
+							"                header: { \"Content-Type\": \"application/json\" },",
+							"            };",
+							"pm.sendRequest(req, (error, response) => {",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					],
+					"query": [
+						{
+							"key": "lat",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "lon",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "rad",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск событий по локации админом",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let event = pm.collectionVariables.get('response');",
+							"        pm.request.addQueryParams([`lat=` + event.location.lat, 'lon=' + event.location.lon, 'rad=' + 1.4]);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"const source = pm.collectionVariables.get('response');",
+							"const target = pm.response.json()[0];",
+							"",
+							"pm.test(\"Событие должно содержать поля: id, title, annotation, category, paid, eventDate, initiator, views, confirmedRequests\", function () {",
+							"pm.expect(target).to.have.property('id');",
+							"pm.expect(target).to.have.property('title');",
+							"pm.expect(target).to.have.property('annotation');",
+							"pm.expect(target).to.have.property('category');",
+							"pm.expect(target).to.have.property('paid');",
+							"pm.expect(target).to.have.property('eventDate');",
+							"pm.expect(target).to.have.property('initiator');",
+							"pm.expect(target).to.have.property('views');",
+							"pm.expect(target).to.have.property('confirmedRequests');",
+							"});",
+							"",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
+							"    pm.expect(source.annotation).equal(target.annotation, 'Аннотация события должна соответствовать аннотации события с указанным идентификатором');",
+							"    pm.expect(source.category.id).equal(target.category.id, 'Категория события должна соответствовать категории события с указанным идентификатором');",
+							"    pm.expect(source.paid.toString()).equal(target.paid.toString(), 'Стоимость события должна соответствовать стоимости события с указанным идентификатором');",
+							"    pm.expect(source.eventDate).equal(target.eventDate, 'Дата проведения события должна соответствовать дате проведения события с указанным идентификатором');",
+							"    pm.expect(source.title).equal(target.title, 'Название события должно соответствовать названию события с указанным идентификатором');",
+							"    pm.expect(source.location.lat).equal(source.location.lat, 'Долгота события должна соответствовать долготе события с указанным идентификатором');",
+							"    pm.expect(source.location.lon).equal(source.location.lon, 'Название события должно соответствовать названию события с указанным идентификатором');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					],
+					"query": [
+						{
+							"key": "lat",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "lon",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "rad",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации должен вернуть пустой список",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon - 15;",
+							"        let latToSearch = event.location.lat - 20;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch, 'rad=' + 0.3]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Должен вернуться пустой список\", function () {",
+							"    pm.response.to.be.ok;",
+							"    pm.expect(pm.response.json().length).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации админом должен вернуть пустой список",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon - 15;",
+							"        let latToSearch = event.location.lat - 20;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch, 'rad=' + 1.4]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Должен вернуться пустой список\", function () {",
+							"    pm.response.to.be.ok;",
+							"    pm.expect(pm.response.json().length).to.eql(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Публичный поиск события по локации c незначительным отклонением по локации",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch, 'rad=' + 2]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"pm.test(\"Должен вернуться список из одного события\", function () {",
+							"    pm.response.to.be.ok;",
+							"    pm.expect(pm.response.json().length).to.eql(1);",
+							"});",
+							"",
+							"const source = pm.collectionVariables.get('response');",
+							"const target = pm.response.json()[0];",
+							"",
+							"pm.test(\"Событие должно содержать поля: id, title, annotation, category, paid, eventDate, initiator, views, confirmedRequests\", function () {",
+							"pm.expect(target).to.have.property('id');",
+							"pm.expect(target).to.have.property('title');",
+							"pm.expect(target).to.have.property('annotation');",
+							"pm.expect(target).to.have.property('category');",
+							"pm.expect(target).to.have.property('paid');",
+							"pm.expect(target).to.have.property('eventDate');",
+							"pm.expect(target).to.have.property('initiator');",
+							"pm.expect(target).to.have.property('views');",
+							"pm.expect(target).to.have.property('confirmedRequests');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Публичный поиск события по локации без указания радиуса",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Публичный поиск события по локации без указания широты",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`rad=` + 1.4, 'lon=' + lonToSearch]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Публичный поиск события по локации без указания долготы",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`rad=` + 1.4, 'lat=' + latToSearch]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации админом c незначительным отклонением по локации",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch, 'rad=' + 2]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
+							"    pm.response.to.be.ok;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});",
+							"",
+							"pm.test(\"Должен вернуться список из одного события\", function () {",
+							"    pm.response.to.be.ok;",
+							"    pm.expect(pm.response.json().length).to.eql(1);",
+							"});",
+							"",
+							"const source = pm.collectionVariables.get('response');",
+							"const target = pm.response.json()[0];",
+							"",
+							"pm.test(\"Событие должно содержать поля: id, title, annotation, category, paid, eventDate, initiator, views, confirmedRequests\", function () {",
+							"pm.expect(target).to.have.property('id');",
+							"pm.expect(target).to.have.property('title');",
+							"pm.expect(target).to.have.property('annotation');",
+							"pm.expect(target).to.have.property('category');",
+							"pm.expect(target).to.have.property('paid');",
+							"pm.expect(target).to.have.property('eventDate');",
+							"pm.expect(target).to.have.property('initiator');",
+							"pm.expect(target).to.have.property('views');",
+							"pm.expect(target).to.have.property('confirmedRequests');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации админом без указания радиуса",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams([`lat=` + latToSearch, 'lon=' + lonToSearch]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации админом без указания широты",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams(['lon=' + lonToSearch,'rad=' + 1.4]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Поиск события по локации админом без указания долготы",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"",
+							"    try {",
+							"        let eventId = pm.collectionVariables.get('eventId');",
+							"        let event = await api.findEvent(eventId);",
+							"        let lonToSearch = event.location.lon + 0.01;",
+							"        let latToSearch = event.location.lat + 0.01;",
+							"        pm.request.addQueryParams(['lat=' + latToSearch,'rad=' + 1.4]);",
+							"        pm.collectionVariables.set('response', event);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            // выполняем наш скрипт",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 400 и данные в формате json\", function () {",
+							"    pm.response.to.be.badRequest;    ",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Удаление локации c привязанным событием",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {",
+							"    const api = new API(pm);",
+							"    const rnd = new RandomUtils();",
+							"    try {",
+							"        let locations = await api.findLocations(false);",
+							"        let locId = locations[0].id;",
+							"        pm.collectionVariables.set(\"loc\", locId);",
+							"    } catch(err) {",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+							"    }",
+							"};",
+							"",
+							"const interval = setInterval(() => {}, 1000);",
+							"",
+							"setTimeout(async () => ",
+							"    {",
+							"        try {",
+							"            await main();",
+							"        } catch (e) {",
+							"            console.error(e);",
+							"        } finally {",
+							"            clearInterval(interval);",
+							"        }",
+							"    },  ",
+							"    100 ",
+							");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 409 и данные в формате json\", function () {",
+							"    pm.response.to.have.status(409);",
+							"    pm.response.to.be.withBody;",
+							"    pm.response.to.be.json;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/:locId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						":locId"
+					],
+					"variable": [
+						{
+							"key": "locId",
+							"value": "{{loc}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"API = class {",
+					"    constructor(postman, verbose = false, baseUrl = \"http://localhost:8080\") {",
+					"        this.baseUrl = baseUrl;",
+					"        this.pm = postman;",
+					"        this._verbose = verbose;",
+					"    }",
+					"",
+					"    async addUser(user, verbose=null) {",
+					"        return this.post(\"/admin/users\", user, \"Ошибка при добавлении нового пользователя: \", verbose);",
+					"    }",
+					"    async addLocation(location, verbose=null) {",
+					"        return this.post(\"/admin/locations\", location, \"Ошибка при добавлении новой локации: \", verbose);",
+					"    }",
+					"",
+					"    async addCategory(category, verbose=null) {",
+					"        return this.post(\"/admin/categories\", category, \"Ошибка при добавлении новой категории: \", verbose);",
+					"    }",
+					"",
+					"    async addEvent(userId, event, verbose=null) {",
+					"        return this.post(\"/users/\" + userId + \"/events\", event, \"Ошибка при добавлении нового события: \", verbose);",
+					"    }",
+					"",
+					"    async addCompilation(compilation, verbose=null) {",
+					"        return this.post(\"/admin/compilations\", compilation, \"Ошибка при добавлении новой подборки: \", verbose);",
+					"    }",
+					"",
+					"    async publishParticipationRequest(eventId, userId, verbose=null) {",
+					"        return this.post('/users/' + userId + '/requests?eventId=' + eventId, null, \"Ошибка при добавлении нового запроса на участие в событии\", verbose);",
+					"    }",
+					"",
+					"    async publishEvent(eventId, verbose=null) {",
+					"        return this.patch('/admin/events/' + eventId, {stateAction: \"PUBLISH_EVENT\"}, \"Ошибка при публикации события\", verbose);",
+					"    }",
+					"    ",
+					"    async rejectEvent(eventId, verbose=null) {",
+					"        return this.patch('/admin/events/' + eventId, {stateAction: \"REJECT_EVENT\"}, \"Ошибка при отмене события\", verbose);",
+					"    }",
+					"",
+					"    async acceptParticipationRequest(eventId, userId, reqId, verbose=null) {",
+					"        return this.patch('/users/' + userId + '/events/' + eventId + '/requests/', {requestIds:[reqId], status: \"CONFIRMED\"}, \"Ошибка при принятии заявки на участие в событии\", verbose);",
+					"    }",
+					"",
+					"    async findLocations(confirmed,verbose=null) {",
+					"        return this.get('/admin/locations?onlyConfirmed=' + confirmed, null, \"Ошибка при поиске локаций\", verbose);",
+					"    }",
+					"",
+					"    async findCategory(catId, verbose=null) {",
+					"        return this.get('/categories/' + catId, null, \"Ошибка при поиске категории по id\", verbose);",
+					"    }",
+					"",
+					"    async findCompilation(compId, verbose=null) {",
+					"        return this.get('/compilations/' + compId, null, \"Ошибка при поиске подборки по id\", verbose);",
+					"    }",
+					"",
+					"    async findEvent(eventId, verbose=null) {",
+					"        return this.get('/events/' + eventId, null, \"Ошибка при поиске события по id\", verbose);",
+					"    }",
+					"",
+					"    async findUser(userId, verbose=null) {",
+					"        return this.get('/admin/users?ids=' + userId, null, \"Ошибка при поиске пользователя по id\", verbose);",
+					"    }",
+					"",
+					"    async post(path, body, errorText = \"Ошибка при выполнении post-запроса: \", verbose=null) {",
+					"        return this.sendRequest(\"POST\", path, body, errorText, verbose);",
+					"    }",
+					"",
+					"    async patch(path, body = null, errorText = \"Ошибка при выполнении patch-запроса: \", verbose=null) {",
+					"        return this.sendRequest(\"PATCH\", path, body, errorText, verbose);",
+					"    }",
+					"",
+					"    async get(path, body = null, errorText = \"Ошибка при выполнении get-запроса: \", verbose=null) {",
+					"        return this.sendRequest(\"GET\", path, body, errorText, verbose);",
+					"    }",
+					"",
+					"    async sendRequest(method, path, body=null, errorText = \"Ошибка при выполнении запроса: \", verbose=null) {",
+					"        return new Promise((resolve, reject) => {",
+					"            verbose = verbose == null ? this._verbose : verbose;",
+					"",
+					"            const request = {",
+					"                url: this.baseUrl + path,",
+					"                method: method,",
+					"                body: body == null ? \"\" : JSON.stringify(body),",
+					"                header: { \"Content-Type\": \"application/json\" },",
+					"            };",
+					"",
+					"            if(verbose) {",
+					"                console.log(\"Отправляю запрос: \", request);",
+					"            }",
+					"",
+					"            try {",
+					"                this.pm.sendRequest(request, (error, response) => {",
+					"                    if(error || (response.code >= 400 && response.code <= 599)) {",
+					"                        let err = error ? error : JSON.stringify(response.json());",
+					"                        console.error(\"При выполнении запроса к серверу возникла ошика.\\n\", err,",
+					"                             \"\\nДля отладки проблемы повторите такой же запрос к вашей программе \" + ",
+					"                             \"на локальном компьютере. Данные запроса:\\n\", JSON.stringify(request));",
+					"",
+					"                        reject(new Error(errorText + err));",
+					"                    }",
+					"",
+					"                    if(verbose) {",
+					"                        console.log(\"Результат обработки запроса: код состояния - \", response.code, \", тело: \", response.json());",
+					"                    }",
+					"",
+					"                    resolve(response.json());",
+					"                });",
+					"            } catch(err) {",
+					"                if(verbose) {",
+					"                    console.error(errorText, err);",
+					"                }",
+					"                return Promise.reject(err);",
+					"            }",
+					"        });",
+					"    }",
+					"};",
+					"",
+					"RandomUtils = class {",
+					"    constructor() {}",
+					"",
+					"    getLocation() {",
+					"        return {",
+					"            lat: parseFloat(pm.variables.replaceIn('{{$randomLatitude}}')),",
+					"            lon: parseFloat(pm.variables.replaceIn('{{$randomLongitude}}')),",
+					"            rad: 0.4,",
+					"            locationName: pm.variables.replaceIn('{{$randomStreetName}}')",
+					"        };",
+					"    }",
+					"    getUser() {",
+					"        return {",
+					"            name: pm.variables.replaceIn('{{$randomFullName}}'),",
+					"            email: pm.variables.replaceIn('{{$randomEmail}}')",
+					"        };",
+					"    }",
+					"",
+					"    getCategory() {",
+					"        return {",
+					"            name: pm.variables.replaceIn('{{$randomWord}}') + Math.floor(Math.random() * 100).toString()",
+					"        };",
+					"    }",
+					"",
+					"    getEvent(categoryId) {",
+					"        return {",
+					"            annotation: pm.variables.replaceIn('{{$randomLoremParagraph}}'),",
+					"            category: categoryId,",
+					"            description: pm.variables.replaceIn('{{$randomLoremParagraphs}}'),",
+					"            eventDate: this.getFutureDateTime(),",
+					"            location: {",
+					"                lat: parseFloat(pm.variables.replaceIn('{{$randomLatitude}}')),",
+					"                lon: parseFloat(pm.variables.replaceIn('{{$randomLongitude}}')),",
+					"            },",
+					"            paid: pm.variables.replaceIn('{{$randomBoolean}}'),",
+					"            participantLimit: pm.variables.replaceIn('{{$randomInt}}'),",
+					"            requestModeration: pm.variables.replaceIn('{{$randomBoolean}}'),",
+					"            title: pm.variables.replaceIn('{{$randomLoremSentence}}'),",
+					"        }",
+					"    }",
+					"",
+					"    getCompilation(...eventIds) {",
+					"        return {",
+					"            title: pm.variables.replaceIn('{{$randomLoremSentence}}').slice(0, 50),",
+					"            pinned: pm.variables.replaceIn('{{$randomBoolean}}'),",
+					"            events: eventIds",
+					"        };",
+					"    }",
+					"",
+					"",
+					"    getFutureDateTime(hourShift = 5, minuteShift=0, yearShift=0) {",
+					"        let moment = require('moment');",
+					"",
+					"        let m = moment();",
+					"        m.add(hourShift, 'hour');",
+					"        m.add(minuteShift, 'minute');",
+					"        m.add(yearShift, 'year');",
+					"",
+					"        return m.format('YYYY-MM-DD HH:mm:ss');",
+					"    }",
+					"",
+					"    getWord(length = 1) {",
+					"        let result = '';",
+					"        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+					"        const charactersLength = characters.length;",
+					"        let counter = 0;",
+					"        while (counter < length) {",
+					"            result += characters.charAt(Math.floor(Math.random() * charactersLength));",
+					"            counter += 1;",
+					"        }",
+					"        return result;",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "loc",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "response",
+			"value": "[object Object]",
+			"type": "string"
+		},
+		{
+			"key": "request_body",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "eventId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "location",
+			"value": "[object Object]",
+			"type": "string"
+		}
+	]
+}
