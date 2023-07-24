@@ -83,7 +83,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional
-    public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
+    public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = repository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         Category category = null;
@@ -98,7 +98,7 @@ public class EventServiceImpl implements EventService {
         if (dto.getLocation() != null) {
             location = locationService.updateLocationById(event.getLocation().getId(), dto.getLocation());
         }
-        mapper.updateEvent(dto, event, category, location);
+        updateEvent(dto, event, category, location);
 
         return mapper.toFullDto(repository.save(event));
     }
@@ -119,7 +119,7 @@ public class EventServiceImpl implements EventService {
         if (dto.getLocation() != null) {
             location = locationService.updateLocationById(event.getLocation().getId(), dto.getLocation());
         }
-        mapper.updateEvent(dto, event, category, location);
+        updateEvent(dto, event, category, location);
         Event updated = repository.saveAndFlush(event);
         if (updated.getPublishedOn() != null && updated.getEventDate().isBefore(updated.getPublishedOn().plusHours(1))) {
             throw new ConflictException(String.format("Event date must be at least one hour after publish date"));
@@ -268,6 +268,10 @@ public class EventServiceImpl implements EventService {
         } else {
             return responseDto;
         }
+    }
+
+    private void updateEvent(UpdateEventUserRequest dto, Event event, Category category, Location location) {
+        mapper.updateEvent(dto, event, category, location);
     }
 
     private static void checkSearchParameters(GetEventSearch request, List<Predicate> predicates) {
