@@ -2,6 +2,8 @@ package ru.practicum.ewmservice.entities.event.service;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,9 @@ import ru.practicum.ewmservice.entities.event.dto.*;
 import ru.practicum.ewmservice.entities.event.mapper.EventMapper;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
+import ru.practicum.ewmservice.entities.location.model.Location;
+import ru.practicum.ewmservice.entities.location.service.LocationServiceImpl;
 import ru.practicum.ewmservice.entities.participation.dao.ParticipationRepository;
 import ru.practicum.ewmservice.entities.participation.dto.*;
 import ru.practicum.ewmservice.entities.participation.model.Participation;
@@ -41,6 +46,7 @@ public class EventServiceImpl implements EventService {
     private final ParticipationRepository partRepository;
     private final EventMapper mapper;
     private final StatsService statsService;
+    private final LocationServiceImpl locationService;
 
 
     @Transactional
@@ -49,7 +55,9 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with id %s doesn't exist", userId)));
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new CategoryNotFoundException(String.format("Category with id %s not found", dto.getCategory())));
-        Event event = mapper.dtoToEvent(dto, user, category);
+        Location location = locationService.addLocationByUser(dto.getLocation());
+
+        Event event = mapper.dtoToEvent(dto, user, category, location);
 
         return mapper.toFullDto(repository.saveAndFlush(event));
     }
@@ -75,7 +83,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional
-    public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
+    public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = repository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         Category category = null;
@@ -86,7 +94,11 @@ public class EventServiceImpl implements EventService {
         if (EventState.PUBLISHED.equals(event.getState())) {
             throw new ConflictException(String.format("You can't update event with %s status", EventState.PUBLISHED));
         }
-        mapper.updateEvent(dto, event, category);
+        Location location = null;
+        if (dto.getLocation() != null) {
+            location = locationService.updateLocationById(event.getLocation().getId(), dto.getLocation());
+        }
+        updateEvent(dto, event, category, location);
 
         return mapper.toFullDto(repository.save(event));
     }
@@ -103,7 +115,11 @@ public class EventServiceImpl implements EventService {
         if (!event.getState().equals(EventState.PENDING)) {
             throw new ConflictException(String.format("You can't publish/reject event with %s status", event.getState()));
         }
-        mapper.updateEvent(dto, event, category);
+        Location location = null;
+        if (dto.getLocation() != null) {
+            location = locationService.updateLocationById(event.getLocation().getId(), dto.getLocation());
+        }
+        updateEvent(dto, event, category, location);
         Event updated = repository.saveAndFlush(event);
         if (updated.getPublishedOn() != null && updated.getEventDate().isBefore(updated.getPublishedOn().plusHours(1))) {
             throw new ConflictException(String.format("Event date must be at least one hour after publish date"));
@@ -200,6 +216,7 @@ public class EventServiceImpl implements EventService {
         if (request.getRangeEnd() != null) {
             predicates.add(event.eventDate.loe(request.getRangeEnd()));
         }
+        getLocationSearch(request, predicates);
         Pageable page = PageRequest.of(request.getFrom(), request.getSize());
         if (!predicates.isEmpty()) {
             return mapper.toFullDto(repository.findAll(ExpressionUtils.allOf(predicates), page).getContent());
@@ -253,6 +270,10 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    private void updateEvent(UpdateEventUserRequest dto, Event event, Category category, Location location) {
+        mapper.updateEvent(dto, event, category, location);
+    }
+
     private static void checkSearchParameters(GetEventSearch request, List<Predicate> predicates) {
         if (!request.getCategories().isEmpty()) {
             predicates.add(event.category.id.in(request.getCategories()));
@@ -276,6 +297,19 @@ public class EventServiceImpl implements EventService {
         }
         if (request.getOnlyAvailable()) {
             predicates.add(event.participantLimit.gt(event.confirmedRequests));
+        }
+        getLocationSearch(request, predicates);
+    }
+
+    private static void getLocationSearch(GetEventSearch request, List<Predicate> predicates) {
+        LocationRequestDto location = request.getLocation();
+        if (location != null) {
+            BooleanExpression expression = Expressions.numberTemplate(Float.class,
+                            "distance({0},{1},{2},{3})",
+                            event.location.lat, event.location.lon, location.getLat(), location.getLon())
+                    .subtract(location.getRad())
+                    .loe(0);
+            predicates.add(expression);
         }
     }
 

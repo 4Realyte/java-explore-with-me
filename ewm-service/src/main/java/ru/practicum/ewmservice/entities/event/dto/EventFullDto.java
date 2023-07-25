@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import ru.practicum.ewmservice.entities.category.dto.CategoryResponseDto;
 import ru.practicum.ewmservice.entities.event.model.EventState;
-import ru.practicum.ewmservice.entities.event.model.Location;
+import ru.practicum.ewmservice.entities.location.dto.LocationShortDto;
 import ru.practicum.ewmservice.entities.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
@@ -26,7 +26,7 @@ public class EventFullDto {
     private String description;
     private LocalDateTime eventDate;
     private UserShortDto initiator;
-    private Location location;
+    private LocationShortDto location;
     private Boolean paid;
     private Integer participantLimit;
     private LocalDateTime publishedOn;

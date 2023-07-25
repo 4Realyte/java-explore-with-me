@@ -1,15 +1,13 @@
 package ru.practicum.ewmservice.entities.event.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import ru.practicum.ewmservice.entities.category.mapper.CategoryMapper;
 import ru.practicum.ewmservice.entities.category.model.Category;
-import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
-import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
-import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
-import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
+import ru.practicum.ewmservice.entities.event.dto.*;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
+import ru.practicum.ewmservice.entities.location.mapper.LocationMapper;
+import ru.practicum.ewmservice.entities.location.model.Location;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationResponseDto;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationStatus;
 import ru.practicum.ewmservice.entities.participation.dto.ParticipationUpdateResponse;
@@ -22,12 +20,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, CategoryMapper.class, LocationMapper.class})
 public interface EventMapper {
     @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "category", source = "category")
     @Mapping(ignore = true, target = "id")
-    Event dtoToEvent(NewEventDto dto, User initiator, Category category);
+    @Mapping(target = "location", source = "location")
+    @Mapping(ignore = true, target = "state")
+    Event dtoToEvent(NewEventDto dto, User initiator, Category category, Location location);
 
     EventFullDto toFullDto(Event event);
 
@@ -55,56 +55,19 @@ public interface EventMapper {
                 .build();
     }
 
-    default void updateEvent(UpdateEventUserRequest dto, Event event, Category category) {
-        if (dto == null) {
-            return;
-        }
-        if (category != null) {
-            event.setCategory(category);
-        }
-        if (dto.getAnnotation() != null) {
-            event.setAnnotation(dto.getAnnotation());
-        }
-        if (dto.getDescription() != null) {
-            event.setDescription(dto.getDescription());
-        }
-        if (dto.getEventDate() != null) {
-            event.setEventDate(dto.getEventDate());
-        }
-        if (dto.getLocation() != null) {
-            event.setLocation(dto.getLocation());
-        }
-        if (dto.getPaid() != null) {
-            event.setPaid(dto.getPaid());
-        }
-        if (dto.getParticipantLimit() != null) {
-            event.setParticipantLimit(dto.getParticipantLimit());
-        }
-        if (dto.getRequestModeration() != null) {
-            event.setRequestModeration(dto.getRequestModeration());
-        }
-        if (dto.getTitle() != null) {
-            event.setTitle(dto.getTitle());
-        }
-        if (dto.getStateAction() != null) {
-            switch (dto.getStateAction()) {
-                case CANCEL_REVIEW:
-                case REJECT_EVENT:
-                    event.setState(EventState.CANCELED);
-                    break;
-                case SEND_TO_REVIEW:
-                    event.setState(EventState.PENDING);
-                    break;
-                case PUBLISH_EVENT:
-                    event.setState(EventState.PUBLISHED);
-                    break;
-            }
-        }
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "category", source = "category")
+    @Mapping(source = "location", target = "event.location")
+    @Mapping(source = "dto.stateAction", target = "event.state")
+    @Mapping(target = "createdOn", ignore = true)
+    void updateEvent(UpdateEventUserRequest dto, @MappingTarget Event event, Category category, Location location);
 
-   /* @ValueMappings({
+    @ValueMappings({
             @ValueMapping(source = "CANCEL_REVIEW", target = "CANCELED"),
-            @ValueMapping(source = "SEND_TO_REVIEW", target = "PENDING")
+            @ValueMapping(source = "REJECT_EVENT", target = "CANCELED"),
+            @ValueMapping(source = "SEND_TO_REVIEW", target = "PENDING"),
+            @ValueMapping(source = "PUBLISH_EVENT", target = "PUBLISHED")
     })
-    EventState convertState(EventStateAction stateAction);*/
+    EventState convertState(EventStateAction stateAction);
 }

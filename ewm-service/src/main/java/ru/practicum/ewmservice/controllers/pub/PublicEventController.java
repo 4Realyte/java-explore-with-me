@@ -8,8 +8,10 @@ import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
 import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
 import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
 import ru.practicum.ewmservice.entities.event.service.EventService;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,8 +32,10 @@ public class PublicEventController {
                                              @RequestParam(required = false) String sort,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size,
-                                             HttpServletRequest servletRequest) {
-        return service.publicSearchEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size), servletRequest);
+                                             HttpServletRequest servletRequest,
+                                             @Valid LocationRequestDto location) {
+        return service.publicSearchEvents(GetEventSearch.of(text, categories, paid, rangeStart, rangeEnd, onlyAvailable,
+                sort, from, size, location), servletRequest);
     }
 
     @GetMapping("/{id}")

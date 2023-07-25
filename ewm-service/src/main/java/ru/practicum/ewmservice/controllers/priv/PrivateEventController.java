@@ -58,7 +58,7 @@ public class PrivateEventController {
     public EventFullDto updateEvent(@PathVariable("userId") Long userId,
                                     @PathVariable("eventId") Long eventId,
                                     @RequestBody @Valid UpdateEventUserRequest dto) {
-        return service.updateEvent(userId, eventId, dto);
+        return service.updateEventByUser(userId, eventId, dto);
     }
 
     @GetMapping("/events/{eventId}/requests")

@@ -8,6 +8,7 @@ import ru.practicum.ewmservice.entities.event.dto.GetEventSearch;
 import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
 import ru.practicum.ewmservice.entities.event.model.EventState;
 import ru.practicum.ewmservice.entities.event.service.EventService;
+import ru.practicum.ewmservice.entities.location.dto.LocationRequestDto;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -26,8 +27,9 @@ public class AdminEventController {
                                            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                            @RequestParam(defaultValue = "0") int from,
-                                           @RequestParam(defaultValue = "10") int size) {
-        return service.adminSearchEvents(GetEventSearch.of(users, states, categories, rangeStart, rangeEnd, from, size));
+                                           @RequestParam(defaultValue = "10") int size,
+                                           @Valid LocationRequestDto location) {
+        return service.adminSearchEvents(GetEventSearch.of(users, states, categories, rangeStart, rangeEnd, from, size, location));
     }
 
     @PatchMapping("/{eventId}")

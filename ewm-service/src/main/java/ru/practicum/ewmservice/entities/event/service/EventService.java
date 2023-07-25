@@ -13,7 +13,7 @@ public interface EventService {
 
     ParticipationResponseDto addRequest(Long userId, Long eventId);
 
-    EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest dto);
+    EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest dto);
 
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventUserRequest dto);
 
