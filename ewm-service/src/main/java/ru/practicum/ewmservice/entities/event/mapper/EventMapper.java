@@ -1,13 +1,9 @@
 package ru.practicum.ewmservice.entities.event.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import ru.practicum.ewmservice.entities.category.mapper.CategoryMapper;
 import ru.practicum.ewmservice.entities.category.model.Category;
-import ru.practicum.ewmservice.entities.event.dto.EventFullDto;
-import ru.practicum.ewmservice.entities.event.dto.EventShortDto;
-import ru.practicum.ewmservice.entities.event.dto.NewEventDto;
-import ru.practicum.ewmservice.entities.event.dto.UpdateEventUserRequest;
+import ru.practicum.ewmservice.entities.event.dto.*;
 import ru.practicum.ewmservice.entities.event.model.Event;
 import ru.practicum.ewmservice.entities.event.model.EventState;
 import ru.practicum.ewmservice.entities.location.mapper.LocationMapper;
@@ -59,56 +55,19 @@ public interface EventMapper {
                 .build();
     }
 
-    default void updateEvent(UpdateEventUserRequest dto, Event event, Category category, Location location) {
-        if (dto == null) {
-            return;
-        }
-        if (category != null) {
-            event.setCategory(category);
-        }
-        if (dto.getAnnotation() != null) {
-            event.setAnnotation(dto.getAnnotation());
-        }
-        if (dto.getDescription() != null) {
-            event.setDescription(dto.getDescription());
-        }
-        if (dto.getEventDate() != null) {
-            event.setEventDate(dto.getEventDate());
-        }
-        if (location != null) {
-            event.setLocation(location);
-        }
-        if (dto.getPaid() != null) {
-            event.setPaid(dto.getPaid());
-        }
-        if (dto.getParticipantLimit() != null) {
-            event.setParticipantLimit(dto.getParticipantLimit());
-        }
-        if (dto.getRequestModeration() != null) {
-            event.setRequestModeration(dto.getRequestModeration());
-        }
-        if (dto.getTitle() != null) {
-            event.setTitle(dto.getTitle());
-        }
-        if (dto.getStateAction() != null) {
-            switch (dto.getStateAction()) {
-                case CANCEL_REVIEW:
-                case REJECT_EVENT:
-                    event.setState(EventState.CANCELED);
-                    break;
-                case SEND_TO_REVIEW:
-                    event.setState(EventState.PENDING);
-                    break;
-                case PUBLISH_EVENT:
-                    event.setState(EventState.PUBLISHED);
-                    break;
-            }
-        }
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "category", source = "category")
+    @Mapping(source = "location", target = "event.location")
+    @Mapping(source = "dto.stateAction", target = "event.state")
+    @Mapping(target = "createdOn", ignore = true)
+    void updateEvent(UpdateEventUserRequest dto, @MappingTarget Event event, Category category, Location location);
 
-   /* @ValueMappings({
+    @ValueMappings({
             @ValueMapping(source = "CANCEL_REVIEW", target = "CANCELED"),
-            @ValueMapping(source = "SEND_TO_REVIEW", target = "PENDING")
+            @ValueMapping(source = "REJECT_EVENT", target = "CANCELED"),
+            @ValueMapping(source = "SEND_TO_REVIEW", target = "PENDING"),
+            @ValueMapping(source = "PUBLISH_EVENT", target = "PUBLISHED")
     })
-    EventState convertState(EventStateAction stateAction);*/
+    EventState convertState(EventStateAction stateAction);
 }
